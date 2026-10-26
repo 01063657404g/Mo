@@ -1,0 +1,638 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>محاكي اختبار معلم مساعد — النموذج الثاني</title>
+
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Noto+Kufi+Arabic:wght@500;700;800&display=swap">
+<style>
+/* التصميم: قاعة اختبار حكومية. شريط علوي كحلي بخط ذهبي، بطاقة سؤال بيضاء على أرضية رمادية مزرقة، وخريطة أسئلة جانبية */
+:root{
+  color-scheme:light;
+  --bg:#E9EDF3; --surface:#FFFFFF; --surface-2:#F2F5FA; --ink:#14213D; --muted:#56637D; --line:#CFD7E3;
+  --bar:#0F2250; --bar-ink:#FFFFFF; --bar-muted:#B9C6E4;
+  --gold:#B8862B; --gold-ink:#7A5A14; --gold-soft:#F6ECD2; --gold-bar:#D8A93F;
+  --btn:#12295B; --btn-ink:#FFFFFF; --sel:#E3ECFA; --sel-line:#12295B;
+  --ok:#1B7A4B; --ok-soft:#DDF2E7; --warn:#A85A07; --warn-soft:#FBEBD2; --bad:#B3261E; --bad-soft:#F9DEDC;
+  --f-display:'Noto Kufi Arabic','Segoe UI',Tahoma,Arial,sans-serif;
+  --f-body:'IBM Plex Sans Arabic','Segoe UI',Tahoma,Arial,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0B1322; --surface:#141F36; --surface-2:#1A2845; --ink:#E9EEF8; --muted:#9FADC8; --line:#2B3A5E;
+    --bar:#091330; --bar-ink:#FFFFFF; --bar-muted:#9FB0D6;
+    --gold:#D8A93F; --gold-ink:#EBCB7C; --gold-soft:#33280F; --gold-bar:#D8A93F;
+    --btn:#D8A93F; --btn-ink:#10192E; --sel:#1F3566; --sel-line:#D8A93F;
+    --ok:#5FCB97; --ok-soft:#12372A; --warn:#E6A653; --warn-soft:#3A2A10; --bad:#F28B83; --bad-soft:#40201E;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0B1322; --surface:#141F36; --surface-2:#1A2845; --ink:#E9EEF8; --muted:#9FADC8; --line:#2B3A5E;
+  --bar:#091330; --bar-ink:#FFFFFF; --bar-muted:#9FB0D6;
+  --gold:#D8A93F; --gold-ink:#EBCB7C; --gold-soft:#33280F; --gold-bar:#D8A93F;
+  --btn:#D8A93F; --btn-ink:#10192E; --sel:#1F3566; --sel-line:#D8A93F;
+  --ok:#5FCB97; --ok-soft:#12372A; --warn:#E6A653; --warn-soft:#3A2A10; --bad:#F28B83; --bad-soft:#40201E;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;padding-block:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.7;min-height:100%}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--bar)}
+button,input{font:inherit;color:inherit}
+h1,h2,h3{font-family:var(--f-display);line-height:1.5;margin:0;text-wrap:balance}
+p{margin:0}
+.in{max-width:1140px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+
+/* الشريط العلوي */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bar);color:var(--bar-ink);border-bottom:3px solid var(--gold-bar)}
+.top .in{display:flex;align-items:center;gap:12px;padding-block:10px}
+.brand{display:flex;align-items:center;gap:12px;min-width:0;flex:1}
+.brand svg{flex:none}
+.brand b{display:block;font-family:var(--f-display);font-size:.95rem;font-weight:700;line-height:1.4}
+.brand span{display:block;font-size:.78rem;color:var(--bar-muted);line-height:1.4}
+.hud{display:flex;align-items:center;gap:10px;flex:none}
+.clock{font-family:var(--f-display);font-variant-numeric:tabular-nums;font-size:1.25rem;font-weight:700;letter-spacing:.02em;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.22);padding:2px 12px;border-radius:6px;direction:ltr;min-width:84px;text-align:center}
+.clock.low{background:#B3261E;border-color:#F28B83;animation:pulse 1s steps(2) infinite}
+.pill-sec{font-size:.8rem;color:var(--bar-muted);max-width:11rem;text-align:end;line-height:1.3}
+.tbtn{background:transparent;border:1px solid rgba(255,255,255,.28);color:var(--bar-ink);border-radius:6px;width:36px;height:36px;cursor:pointer;display:grid;place-items:center}
+.prog{height:4px;background:rgba(255,255,255,.15)}
+.prog i{display:block;height:100%;background:var(--gold-bar);transition:width .2s}
+@keyframes pulse{50%{opacity:.65}}
+
+/* عناصر مشتركة */
+main.in{padding-block:22px 12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:20px}
+.eyebrow{font-size:.8rem;letter-spacing:.06em;color:var(--gold-ink);font-weight:600}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:46px;padding:8px 22px;border-radius:6px;border:1px solid var(--btn);background:var(--btn);color:var(--btn-ink);font-weight:600;cursor:pointer;font-size:1rem}
+.btn:hover{filter:brightness(1.08)}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+.btn.ghost:hover{border-color:var(--ink)}
+.btn.danger{background:var(--bad);border-color:var(--bad);color:#fff}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+table{border-collapse:collapse;width:100%}
+.tw{overflow-x:auto}
+th,td{padding:9px 12px;text-align:start;border-bottom:1px solid var(--line);font-size:.93rem;white-space:nowrap}
+th{background:var(--surface-2);font-weight:600;color:var(--muted);font-size:.82rem}
+td.w{white-space:normal}
+.num{font-variant-numeric:tabular-nums}
+.tag{display:inline-block;font-size:.75rem;padding:1px 9px;border-radius:99px;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
+.tag.ok{background:var(--ok-soft);color:var(--ok);border-color:transparent}
+.tag.bad{background:var(--bad-soft);color:var(--bad);border-color:transparent}
+.tag.warn{background:var(--warn-soft);color:var(--warn);border-color:transparent}
+.tag.gold{background:var(--gold-soft);color:var(--gold-ink);border-color:transparent}
+
+/* الصفحة الأولى */
+.hero{display:grid;gap:14px;padding:26px 22px;border-radius:8px;background:var(--bar);color:var(--bar-ink);border-bottom:4px solid var(--gold-bar)}
+.hero h1{font-size:clamp(1.35rem,4.6vw,2rem);font-weight:800}
+.hero p{color:var(--bar-muted);max-width:60ch}
+.hero .eyebrow{color:var(--gold-bar)}
+.grid2{display:grid;grid-template-columns:1.35fr 1fr;gap:18px;margin-top:18px}
+.grid2>*{min-width:0}
+.rules{margin:0;padding:0;list-style:none;display:grid;gap:10px}
+.rules li{padding-inline-start:20px;position:relative;font-size:.95rem}
+.rules li::before{content:"";position:absolute;inset-inline-start:0;top:.7em;width:8px;height:8px;background:var(--gold);transform:rotate(45deg)}
+.field label{display:block;font-size:.85rem;color:var(--muted);margin-bottom:4px}
+.field input{width:100%;min-height:46px;border:1px solid var(--line);background:var(--surface-2);border-radius:6px;padding:6px 12px}
+details.an{margin-top:18px}
+details.an summary{cursor:pointer;font-family:var(--f-display);font-weight:700;padding:14px 18px;background:var(--surface);border:1px solid var(--line);border-radius:8px;list-style-position:inside}
+details.an[open] summary{border-bottom-left-radius:0;border-bottom-right-radius:0}
+.an-body{border:1px solid var(--line);border-top:0;background:var(--surface);border-radius:0 0 8px 8px;padding:6px 18px 16px;display:grid;gap:12px}
+.an-body h3{font-size:.95rem;color:var(--gold-ink);margin-top:10px}
+.an-body ul{margin:4px 0 0;padding-inline-start:20px;font-size:.92rem}
+.disc{font-size:.82rem;color:var(--muted);margin-top:14px}
+
+/* الراحة */
+.rest{display:grid;place-items:center}
+.restcard{width:min(680px,100%);text-align:center;display:grid;gap:14px;justify-items:center}
+.restcard h1{font-size:clamp(1.4rem,5vw,2rem);font-weight:800}
+.count{font-family:var(--f-display);font-size:4.2rem;font-weight:800;color:var(--gold-ink);font-variant-numeric:tabular-nums;line-height:1.1}
+.facts{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:100%}
+.facts div{background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:10px 6px}
+.facts b{display:block;font-family:var(--f-display);font-size:1.25rem}
+.facts span{font-size:.8rem;color:var(--muted)}
+.tip{background:var(--gold-soft);color:var(--ink);border-radius:6px;padding:12px 16px;text-align:start;width:100%;font-size:.95rem}
+.steps{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.steps i{width:30px;height:6px;border-radius:3px;background:var(--line)}
+.steps i.done{background:var(--ok)}
+.steps i.cur{background:var(--gold)}
+
+/* شاشة الأسئلة */
+.exam{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:18px;align-items:start}
+.qcard{padding:0;overflow:hidden}
+.qhead{display:flex;align-items:center;gap:10px;justify-content:space-between;padding:12px 18px;background:var(--surface-2);border-bottom:1px solid var(--line);flex-wrap:wrap}
+.qhead b{font-family:var(--f-display);font-size:.95rem}
+.qnum{font-size:.85rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.flagbtn{border:1px solid var(--line);background:var(--surface);border-radius:6px;padding:4px 12px;cursor:pointer;font-size:.85rem;color:var(--muted)}
+.flagbtn.on{background:var(--warn-soft);color:var(--warn);border-color:var(--warn)}
+.qbody{padding:22px 18px 8px}
+.qtext{font-size:1.2rem;line-height:2.05;font-weight:500;margin-bottom:16px}
+.qbody[dir="ltr"] .qtext{line-height:1.7;font-size:1.15rem}
+.opts{display:grid;gap:10px;padding-bottom:6px}
+.opt{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--line);border-radius:6px;background:var(--surface);cursor:pointer;min-height:52px}
+.opt:hover{border-color:var(--muted)}
+.opt input{position:absolute;opacity:0;pointer-events:none}
+.opt .chip{flex:none;width:30px;height:30px;border-radius:50%;border:1.5px solid var(--muted);display:grid;place-items:center;font-size:.85rem;font-weight:600;color:var(--muted)}
+.opt .otxt{flex:1;min-width:0;line-height:1.8}
+.opt.sel{background:var(--sel);border-color:var(--sel-line);box-shadow:inset 0 0 0 1px var(--sel-line)}
+.opt.sel .chip{background:var(--sel-line);color:var(--btn-ink);border-color:var(--sel-line)}
+.opt:has(input:focus-visible){outline:3px solid var(--gold);outline-offset:2px}
+.qfoot{display:flex;justify-content:space-between;gap:10px;padding:14px 18px;border-top:1px solid var(--line);margin-top:10px;flex-wrap:wrap}
+.map{padding:16px}
+.maphead{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.maphead b{font-family:var(--f-display);font-size:.95rem}
+.mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(38px,1fr));gap:6px;max-height:330px;overflow-y:auto;padding:2px}
+.mb{height:38px;border-radius:5px;border:1px solid var(--line);background:var(--surface);cursor:pointer;font-size:.82rem;font-variant-numeric:tabular-nums;padding:0}
+.mb.ans{background:var(--sel);border-color:var(--sel-line);font-weight:600}
+.mb.flag{border-color:var(--warn);box-shadow:inset 0 -4px 0 var(--warn)}
+.mb.cur{outline:3px solid var(--gold);outline-offset:1px}
+.legend{display:flex;flex-wrap:wrap;gap:10px;font-size:.75rem;color:var(--muted);margin:12px 0}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;border:1px solid var(--line);vertical-align:-2px;margin-inline-end:4px}
+.legend .a{background:var(--sel);border-color:var(--sel-line)}
+.legend .f{border-color:var(--warn);box-shadow:inset 0 -3px 0 var(--warn)}
+.modal{position:fixed;inset:0;z-index:50;background:rgba(5,10,25,.62);display:grid;place-items:center;padding:16px}
+.modal .card{width:min(460px,100%);display:grid;gap:12px}
+.toast{position:fixed;inset-inline:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:60;margin:0 auto;max-width:460px;background:var(--bar);color:#fff;border-radius:6px;padding:12px 16px;border-inline-start:4px solid var(--gold-bar);box-shadow:0 6px 24px rgba(0,0,0,.35)}
+
+/* النتائج */
+.verdict{display:grid;gap:8px;padding:24px 20px;border-radius:8px;border:1px solid var(--line);background:var(--surface);border-top:6px solid var(--muted)}
+.verdict.pass{border-top-color:var(--ok)}
+.verdict.fail{border-top-color:var(--bad)}
+.verdict .big{font-family:var(--f-display);font-weight:800;font-size:clamp(2rem,9vw,3.4rem);line-height:1.2;font-variant-numeric:tabular-nums}
+.verdict.pass .big{color:var(--ok)}
+.verdict.fail .big{color:var(--bad)}
+.sec-h{font-family:var(--f-display);font-size:1.15rem;margin:26px 0 10px}
+.bar{position:relative;height:12px;background:var(--surface-2);border:1px solid var(--line);border-radius:6px;min-width:120px;overflow:visible}
+.bar i{position:absolute;inset-block:0;inset-inline-start:0;border-radius:6px;background:var(--btn)}
+.bar i.g{background:var(--ok)}
+.bar i.r{background:var(--bad)}
+.bar u{position:absolute;inset-block:-4px;width:2px;background:var(--gold);inset-inline-start:80%}
+.traits{display:grid;gap:12px}
+.trait{display:grid;grid-template-columns:minmax(0,12rem) minmax(0,1fr) auto;gap:12px;align-items:center}
+.trait small{display:block;color:var(--muted);font-size:.78rem;line-height:1.5}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips button{border:1px solid var(--line);background:var(--surface);border-radius:99px;padding:5px 14px;cursor:pointer;font-size:.85rem}
+.chips button.on{background:var(--btn);color:var(--btn-ink);border-color:var(--btn)}
+.rq{padding:16px;display:grid;gap:10px}
+.rq+.rq{margin-top:10px}
+.rq h3{font-size:1rem;font-weight:500;line-height:1.9}
+.rq[dir="ltr"] h3{line-height:1.6}
+.ro{display:flex;gap:8px;align-items:flex-start;padding:7px 12px;border:1px solid var(--line);border-radius:6px;font-size:.93rem}
+.ro.right{background:var(--ok-soft);border-color:var(--ok)}
+.ro.wrong{background:var(--bad-soft);border-color:var(--bad)}
+.ro em{font-style:normal;font-size:.75rem;margin-inline-start:auto;white-space:nowrap;font-weight:600}
+.exp{font-size:.88rem;color:var(--muted);border-inline-start:3px solid var(--gold);padding-inline-start:10px}
+.foot{padding-block:22px calc(26px + env(safe-area-inset-bottom,0px));text-align:center;color:var(--muted);font-size:.85rem}
+.foot b{color:var(--gold-ink);font-family:var(--f-display)}
+.foot p+p{margin-top:4px;font-size:.78rem}
+
+@media (max-width:860px){
+  .exam{grid-template-columns:minmax(0,1fr)}
+  .grid2{grid-template-columns:minmax(0,1fr)}
+  .mgrid{max-height:220px}
+}
+@media (max-width:560px){
+  .pill-sec{display:none}
+  .brand span{display:none}
+  .trait{grid-template-columns:minmax(0,1fr)}
+  .qtext{font-size:1.1rem}
+  .facts b{font-size:1.05rem}
+  .count{font-size:3.4rem}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+.trk{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.trk-o{display:flex;align-items:center;justify-content:center;gap:8px;padding:10px 12px;border:2px solid var(--line);border-radius:10px;background:var(--surface);cursor:pointer;font-weight:600}
+.trk-o.on{border-color:var(--sel-line);background:var(--sel)}
+.trk-o input{accent-color:var(--btn)}
+
+.lockwall{position:fixed;inset:0;z-index:1000;background:rgba(9,19,48,.92);display:grid;place-items:center;padding:16px;overflow:auto}
+.lockbox{background:var(--surface);color:var(--ink);border:2px solid var(--gold);border-radius:14px;max-width:440px;width:100%;padding:22px;display:grid;gap:12px}
+.lockbox h2{font-size:1.2rem}
+.lockbox input{width:100%;padding:12px;border:2px solid var(--line);border-radius:10px;background:var(--surface-2);font-size:1.1rem;text-align:center}
+.lkerr{color:var(--bad);min-height:1.4em;font-weight:600}
+.lockbox .row{display:flex;gap:8px;flex-wrap:wrap}
+.lockbox a.btn{text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
+.subbox{display:grid;gap:8px;padding:12px;border:1px dashed var(--gold);border-radius:10px;background:var(--gold-soft);color:var(--gold-ink)}
+.subbox a{text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
+</style>
+
+</head>
+<body>
+<header class="top" id="top"></header>
+<div id="app"></div>
+<footer class="foot in">
+  <p><b>مقدم من صفحة ببساطة</b> &middot; إعداد مستر محمد سيد</p>
+  <p>اختبار تدريبي محاكٍ لأغراض التدريب فقط. ليس اختبارًا رسميًا ولا يتبع أي جهة حكومية، والأسئلة من إعداد الصفحة.</p>
+</footer>
+<div id="layer"></div>
+
+<script>
+document.documentElement.lang='ar';document.documentElement.dir='rtl';
+const DATA={"scales":{"agree":["أوافق بشدة","أوافق","محايد","لا أوافق","لا أوافق بشدة"],"applies":["ينطبق عليّ تمامًا","ينطبق عليّ غالبًا","ينطبق عليّ أحيانًا","ينطبق عليّ نادرًا","لا ينطبق عليّ إطلاقًا"],"freq":["دائمًا","غالبًا","أحيانًا","نادرًا","أبدًا"],"trouble":["أعاني بشدة","أعاني","محايد","لا أعاني","لا أعاني إطلاقًا"],"approx":["نعم تمامًا","نعم تقريبًا","لا أدري","لا تقريبًا","لا إطلاقًا"]},"traits":[{"id":"coop","name":"التعاون والعمل الجماعي","desc":"الاستعداد للعمل مع الفريق ومساعدة الزملاء والمشاركة في بناء بيئة عمل إيجابية."},{"id":"learn","name":"التعلم والتطوير الذاتي","desc":"الرغبة في اكتساب المعرفة والمهارات الجديدة والاستفادة من الأخطاء والملاحظات."},{"id":"cult","name":"الثقافة وتقبّل الآخر","desc":"الوعي الثقافي واحترام الرأي المخالف وتقبل الاختلاف في الأفكار والعادات."},{"id":"solo","name":"العمل الفردي والاستقلالية","desc":"القدرة على المبادرة وتنظيم الوقت وإنجاز المهام دون توجيه أو رقابة مستمرة."},{"id":"resp","name":"تحمّل المسؤولية وأثر القرارات","desc":"تقبّل نتائج القرارات، والاعتراف بالخطأ، وعدم إلقاء اللوم على الآخرين."},{"id":"integ","name":"النزاهة والالتزام بالمبادئ","desc":"الالتزام بالقيم واللوائح والأمانة المهنية وعدم المجاملة على حساب الحق."},{"id":"emo","name":"الاتزان الانفعالي وتحمل الضغط","desc":"ضبط الانفعال والهدوء تحت الضغط والصبر في المواقف الصعبة."},{"id":"conf","name":"الثقة بالنفس وتقبّل النقد","desc":"الثقة في القدرات، والتواصل الواثق، وتعديل الأداء بعد النقد البنّاء."}],"beh":[{"t":"أبادر بالتعرف على من لا أعرفهم","s":"freq","r":0,"tr":"conf","p":"conf7"},{"t":"أصاب بالارتباك عندما تزيد المهام","s":"applies","r":1,"tr":"emo","p":"emo4"},{"t":"أضع لنفسي أهدافًا وأسعى لتحقيقها","s":"freq","r":0,"tr":"solo","p":"solo5"},{"t":"أحترم أموال العمل وممتلكاته","s":"freq","r":0,"tr":"integ","p":"integ8"},{"t":"هل تحترم عادات الآخرين حتى لو لم تتبعها؟","s":"approx","r":0,"tr":"cult","p":"cult9"},{"t":"أنجز مهامي دون الحاجة إلى متابعة مستمرة","s":"agree","r":0,"tr":"solo","p":"solo0"},{"t":"أرفض التوقيع على ما لا أقتنع به","s":"agree","r":0,"tr":"integ","p":"integ0"},{"t":"لا يغضبني النقد الموجه لأدائي","s":"agree","r":0,"tr":"emo","p":"emo1"},{"t":"أشعر بالفخر بما حققته","s":"agree","r":0,"tr":"conf","p":"conf3"},{"t":"أتعالى على من هم أقل مني في المستوى","s":"applies","r":1,"tr":"cult","p":"cult2"},{"t":"أنسى أخطائي بسرعة دون أن أتعلم منها","s":"freq","r":1,"tr":"learn","p":"learn1"},{"t":"هل تضايقك نجاحات زملائك؟","s":"approx","r":1,"tr":"coop","p":"coop4"},{"t":"ينفد صبري سريعًا مع من لا يفهم من أول مرة","s":"applies","r":1,"tr":"emo","p":"emo7"},{"t":"أنجز مهمتي حتى لو لم يطلب مني أحد ذلك","s":"freq","r":0,"tr":"resp","p":"resp4"},{"t":"لا أقرأ إلا لمن يتفق معي","s":"freq","r":1,"tr":"cult","p":"cult8"},{"t":"أتحمل نتيجة قراراتي كاملة","s":"agree","r":0,"tr":"resp","p":"resp1"},{"t":"هل تتخذ قرارك سريعًا دون التفكير فيما يترتب عليه؟","s":"approx","r":1,"tr":"resp","p":"resp2"},{"t":"أتضايق من أي ملاحظة على عملي","s":"freq","r":1,"tr":"conf","p":"conf5"},{"t":"أرى تدريب الزملاء الجدد عبئًا لا يخصني","s":"agree","r":1,"tr":"coop","p":"coop3"},{"t":"لا أمدّ يد العون لزميلي إلا إذا طلب مني","s":"freq","r":1,"tr":"coop","p":"coop1"},{"t":"أكذب لأتجنب الحرج","s":"freq","r":1,"tr":"integ","p":"integ3"},{"t":"أتعلم من نجاحات زملائي","s":"freq","r":0,"tr":"learn","p":"learn7"},{"t":"هل تقدر على ضبط نفسك عند الاستفزاز؟","s":"approx","r":0,"tr":"emo","p":"emo9"},{"t":"أخفي تأخري وأتمنى ألا يلاحظه أحد","s":"applies","r":1,"tr":"resp","p":"resp5"},{"t":"أعامل الجميع بالتساوي في التقييم","s":"freq","r":0,"tr":"integ","p":"integ5"},{"t":"لا أعمل إلا إذا راقبني أحد","s":"applies","r":1,"tr":"solo","p":"solo0"},{"t":"أفضّل ألا أشارك أحدًا في أي مهمة","s":"agree","r":1,"tr":"coop","p":"coop0"},{"t":"أرى أن حياتي تحددها الظروف والناس لا أنا","s":"agree","r":1,"tr":"resp","p":"resp3"},{"t":"هل تجامل صديقك على حساب الحق؟","s":"approx","r":1,"tr":"integ","p":"integ4"},{"t":"هل ترى أنك وصلت إلى مرحلة لا تحتاج فيها إلى تعلم؟","s":"approx","r":1,"tr":"learn","p":"learn9"},{"t":"أتقبل الملاحظة على عملي بصدر رحب","s":"freq","r":0,"tr":"conf","p":"conf5"},{"t":"لا أضع أهدافًا وأترك الأمور تسير","s":"applies","r":1,"tr":"solo","p":"solo5"},{"t":"أتابع كل جديد في مجال عملي","s":"freq","r":0,"tr":"learn","p":"learn0"},{"t":"أتجاوز اللوائح إذا لم يرني أحد","s":"freq","r":1,"tr":"integ","p":"integ1"},{"t":"أقيّم أدائي بنفسي وأحدد نقاط ضعفي","s":"freq","r":0,"tr":"learn","p":"learn6"},{"t":"أنسب لنفسي معظم الفضل في أي عمل جماعي","s":"applies","r":1,"tr":"coop","p":"coop5"},{"t":"أحرص على حضور الدورات التدريبية","s":"freq","r":0,"tr":"learn","p":"learn2"},{"t":"أناقش المختلف معي بهدوء واحترام","s":"freq","r":0,"tr":"cult","p":"cult5"},{"t":"أرفض أي مهمة لا تعود عليّ بفائدة شخصية","s":"applies","r":1,"tr":"coop","p":"coop6"},{"t":"أفكر قبل أن أرد أثناء الخلاف","s":"freq","r":0,"tr":"emo","p":"emo5"},{"t":"أرحب بتدريب زميل جديد على العمل","s":"agree","r":0,"tr":"coop","p":"coop3"},{"t":"أنفعل بسرعة عند أي موقف صعب","s":"freq","r":1,"tr":"emo","p":"emo0"},{"t":"هل تتخذ قرارات صغيرة في عملك دون الرجوع إلى مديرك؟","s":"approx","r":0,"tr":"solo","p":"solo4"},{"t":"أرى أن الغاية لا تبرر الوسيلة","s":"agree","r":0,"tr":"integ","p":"integ7"},{"t":"أستخدم التكنولوجيا الحديثة لتطوير عملي","s":"freq","r":0,"tr":"learn","p":"learn8"},{"t":"أتوقف عن العمل عندما أنهي المطلوب فقط","s":"freq","r":1,"tr":"solo","p":"solo6"},{"t":"أتحكم في انفعالي أمام طلابي","s":"freq","r":0,"tr":"emo","p":"emo2"},{"t":"أستمتع بالتعرف على ثقافات مختلفة","s":"agree","r":0,"tr":"cult","p":"cult4"},{"t":"هل تحتاج إلى إذن مديرك في كل تفصيلة؟","s":"approx","r":1,"tr":"solo","p":"solo4"},{"t":"أشارك زملائي الأفكار والمواد التي تفيدهم","s":"freq","r":0,"tr":"coop","p":"coop2"},{"t":"ألتزم باللوائح حتى لو لم يراقبني أحد","s":"freq","r":0,"tr":"integ","p":"integ1"},{"t":"أتحمل إنجاز مهمة صعبة بمفردي","s":"agree","r":0,"tr":"solo","p":"solo7"},{"t":"أتهرب من المهام التي تحتاج إلى مجهود فردي","s":"applies","r":1,"tr":"solo","p":"solo7"},{"t":"أستعمل ممتلكات العمل لمصلحتي الشخصية","s":"freq","r":1,"tr":"integ","p":"integ8"},{"t":"أتحمل المسؤولية عندما يخطئ فريقي","s":"freq","r":0,"tr":"resp","p":"resp8"},{"t":"أعاني من أخطاء الماضي ولا أستطيع تجاوزها","s":"trouble","r":1,"tr":"conf","p":"conf6"},{"t":"أرى أنني من يصنع حاضري ومستقبلي","s":"agree","r":0,"tr":"resp","p":"resp3"},{"t":"هل ترى أن التعلم لا ينتهي مهما بلغت من خبرة؟","s":"approx","r":0,"tr":"learn","p":"learn9"},{"t":"أؤجل مهامي إلى اللحظة الأخيرة دائمًا","s":"freq","r":1,"tr":"solo","p":"solo2"},{"t":"أستطيع العمل بمفردي بكفاءة","s":"agree","r":0,"tr":"solo","p":"solo3"},{"t":"أتجنب التعاون مع من يخالفني الرأي","s":"freq","r":1,"tr":"coop","p":"coop7"},{"t":"أتمسك برأيي حتى لو ثبت خطؤه","s":"freq","r":1,"tr":"conf","p":"conf1"},{"t":"أتجنب بدء الحديث مع الغرباء","s":"freq","r":1,"tr":"conf","p":"conf7"},{"t":"أعاني من القلق المستمر لأتفه الأسباب","s":"trouble","r":1,"tr":"emo","p":"emo6"},{"t":"أنسب الفضل لكل من شارك في الإنجاز","s":"freq","r":0,"tr":"coop","p":"coop5"},{"t":"ألتزم بما أعد به","s":"freq","r":0,"tr":"resp","p":"resp7"},{"t":"أصرخ عندما أفقد صبري","s":"freq","r":1,"tr":"emo","p":"emo2"},{"t":"أغضب إذا حوسبت على خطأ ارتكبته","s":"applies","r":1,"tr":"resp","p":"resp6"},{"t":"أقرأ لكتّاب تختلف أفكارهم عني","s":"freq","r":0,"tr":"cult","p":"cult8"},{"t":"أشك في قدرتي على إنجاز المهام","s":"agree","r":1,"tr":"conf","p":"conf0"},{"t":"أحب العمل ضمن فريق لأن النتائج تكون أفضل","s":"agree","r":0,"tr":"coop","p":"coop0"},{"t":"أستفيد من أخطائي في تحسين أدائي","s":"freq","r":0,"tr":"learn","p":"learn1"},{"t":"أقبل توزيع العمل بعدل حتى لو أخذت المهمة الأصعب","s":"agree","r":0,"tr":"coop","p":"coop6"},{"t":"هل تفرح لنجاح زميلك كما تفرح لنجاحك؟","s":"approx","r":0,"tr":"coop","p":"coop4"},{"t":"أحافظ على أسرار العمل","s":"freq","r":0,"tr":"integ","p":"integ6"},{"t":"ألقي اللوم على غيري حين أخطئ","s":"freq","r":1,"tr":"resp","p":"resp0"},{"t":"أساهم في حل الخلافات بين الزملاء","s":"freq","r":0,"tr":"coop","p":"coop8"},{"t":"أكتفي بما تعلمته ولا أحتاج إلى المزيد","s":"agree","r":1,"tr":"learn","p":"learn0"},{"t":"أقبل المحاسبة على تقصيري","s":"agree","r":0,"tr":"resp","p":"resp6"},{"t":"هل تقول الحق لصديقك المقرب إذا أخطأ؟","s":"approx","r":0,"tr":"integ","p":"integ4"},{"t":"أرى أن عاداتي هي الصحيحة وغيرها خاطئ","s":"agree","r":1,"tr":"cult","p":"cult1"},{"t":"أصمت في الاجتماعات خوفًا من الخطأ","s":"freq","r":1,"tr":"conf","p":"conf2"},{"t":"لا يهمني معرفة شيء عن ثقافة غيري","s":"agree","r":1,"tr":"cult","p":"cult4"},{"t":"أعدّل أسلوبي إذا انتقدني أحد نقدًا بنّاءً","s":"freq","r":0,"tr":"conf","p":"conf1"},{"t":"هل ترى أن نجاح الفريق أهم من نجاحك الفردي؟","s":"approx","r":0,"tr":"coop","p":"coop9"},{"t":"أعترف بخطئي وأصححه","s":"freq","r":0,"tr":"resp","p":"resp0"},{"t":"أنهي عملي في الموعد المحدد دون تذكير","s":"freq","r":0,"tr":"solo","p":"solo8"},{"t":"أنتظر التعليمات في كل خطوة","s":"freq","r":1,"tr":"solo","p":"solo1"},{"t":"هل تحكم على الآخرين من أول لقاء؟","s":"approx","r":1,"tr":"cult","p":"cult3"},{"t":"أنزعج جدًا إذا انتقدني أحد","s":"agree","r":1,"tr":"emo","p":"emo1"},{"t":"لا أتدخل في خلافات زملائي حتى لو أثرت على العمل","s":"applies","r":1,"tr":"coop","p":"coop8"},{"t":"أدافع عن حقي بأدب ووضوح","s":"freq","r":0,"tr":"conf","p":"conf9"},{"t":"هل تنتقد عادات الآخرين أمامهم؟","s":"approx","r":1,"tr":"cult","p":"cult9"},{"t":"أرحب بتجربة أساليب جديدة في التدريس","s":"agree","r":0,"tr":"learn","p":"learn5"},{"t":"أتحدث بما أعرفه عن زملائي لمن يسألني","s":"freq","r":1,"tr":"integ","p":"integ6"},{"t":"أعترف بقدراتي دون غرور","s":"agree","r":0,"tr":"conf","p":"conf8"},{"t":"أستطيع إنجاز عملي رغم كثرة المهام","s":"agree","r":0,"tr":"emo","p":"emo4"},{"t":"هل تتجاوز الموقف المزعج بسرعة؟","s":"approx","r":0,"tr":"emo","p":"emo3"},{"t":"لست راضيًا عن نفسي ولا أرى ما أفخر به","s":"agree","r":1,"tr":"conf","p":"conf3"},{"t":"هل تفكر في حلول مبتكرة عند مواجهة مشكلة في العمل؟","s":"approx","r":0,"tr":"solo","p":"solo9"},{"t":"أتنازل عن حقي خوفًا من المواجهة","s":"freq","r":1,"tr":"conf","p":"conf9"},{"t":"هل يربكك الحديث أمام الآخرين؟","s":"approx","r":1,"tr":"conf","p":"conf4"},{"t":"أحاسب نفسي قبل أن يحاسبني غيري","s":"freq","r":0,"tr":"integ","p":"integ9"},{"t":"هل تراجع نفسك أولًا عندما يتعثر طلابك؟","s":"approx","r":0,"tr":"resp","p":"resp9"},{"t":"أرد بسرعة دون تفكير فأندم لاحقًا","s":"freq","r":1,"tr":"emo","p":"emo5"},{"t":"أنظم وقتي بنفسي لإنجاز مهامي","s":"freq","r":0,"tr":"solo","p":"solo2"},{"t":"لا أرى لدي نقاط ضعف تحتاج إلى معالجة","s":"applies","r":1,"tr":"learn","p":"learn6"},{"t":"أبادر بمساعدة زميلي إذا رأيته متعثرًا","s":"freq","r":0,"tr":"coop","p":"coop1"},{"t":"أبرئ نفسي سريعًا عندما يخطئ الفريق","s":"applies","r":1,"tr":"resp","p":"resp8"},{"t":"أخصص وقتًا أسبوعيًا للقراءة والتعلم","s":"freq","r":0,"tr":"learn","p":"learn4"},{"t":"أنسى وعودي بسهولة","s":"freq","r":1,"tr":"resp","p":"resp7"},{"t":"أحتفظ بما أعرفه لنفسي حتى أتميز عن زملائي","s":"applies","r":1,"tr":"coop","p":"coop2"},{"t":"هل تسأل من هو أكثر خبرة منك عندما تجهل شيئًا؟","s":"approx","r":0,"tr":"learn","p":"learn3"},{"t":"لا أقرأ إلا عند الاضطرار","s":"freq","r":1,"tr":"learn","p":"learn4"},{"t":"أثق في قدرتي على النجاح","s":"agree","r":0,"tr":"conf","p":"conf0"},{"t":"أرفع درجة من أحبه دون وجه حق","s":"applies","r":1,"tr":"integ","p":"integ5"},{"t":"لا بأس باستخدام حلول غير قانونية إذا حققت نتيجة جيدة","s":"agree","r":1,"tr":"integ","p":"integ7"},{"t":"هل تتجنب السؤال حتى لا يظهر جهلك؟","s":"approx","r":1,"tr":"learn","p":"learn3"},{"t":"عند انتهائي من هدف أبحث عن هدف جديد","s":"freq","r":0,"tr":"solo","p":"solo6"},{"t":"أحترم الرأي المخالف لرأيي","s":"freq","r":0,"tr":"cult","p":"cult0"},{"t":"أعتقد أن هناك رأيًا واحدًا فقط صحيحًا دائمًا","s":"agree","r":1,"tr":"cult","p":"cult6"},{"t":"أحتفظ بالضغينة لمن أخطأ في حقي","s":"applies","r":1,"tr":"emo","p":"emo8"},{"t":"أسخر من الآراء التي لا تعجبني","s":"freq","r":1,"tr":"cult","p":"cult0"},{"t":"أتهرب من التدريب لأنني أراه مضيعة للوقت","s":"applies","r":1,"tr":"learn","p":"learn2"},{"t":"أوقّع على أي أوراق إذا طلب مديري ذلك دون نقاش","s":"applies","r":1,"tr":"integ","p":"integ0"},{"t":"أتعامل بلطف مع من يختلفون عني في الخلفية أو المستوى","s":"freq","r":0,"tr":"cult","p":"cult2"},{"t":"أتقبل اختلاف العادات والتقاليد بين الناس","s":"agree","r":0,"tr":"cult","p":"cult1"},{"t":"هل ترى أن تعثر الطلاب سببه الطلاب وحدهم دائمًا؟","s":"approx","r":1,"tr":"resp","p":"resp9"},{"t":"أحمّل الظروف مسؤولية فشلي دائمًا","s":"agree","r":1,"tr":"resp","p":"resp1"},{"t":"أعتقد أنه لا شيء يمكنني تعلمه من زملائي","s":"agree","r":1,"tr":"learn","p":"learn7"},{"t":"أتمسك بطريقتي القديمة ولا أغيرها","s":"agree","r":1,"tr":"learn","p":"learn5"},{"t":"أعرض رأيي بثقة في الاجتماعات","s":"freq","r":0,"tr":"conf","p":"conf2"},{"t":"أرى نفسي أفضل من كل زملائي","s":"applies","r":1,"tr":"conf","p":"conf8"},{"t":"أترك المهمة إذا لم يحاسبني عليها أحد","s":"applies","r":1,"tr":"resp","p":"resp4"},{"t":"أتعاون مع الآخرين حتى لو اختلفت معهم في الرأي","s":"freq","r":0,"tr":"coop","p":"coop7"},{"t":"أقبل التخلي عن مبادئي إذا كان المقابل منصبًا أعلى","s":"agree","r":1,"tr":"integ","p":"integ2"},{"t":"أعامل الجميع بالعدل بغض النظر عن خلفياتهم","s":"freq","r":0,"tr":"cult","p":"cult7"},{"t":"لا أتأثر كثيرًا بما حدث لي في الماضي","s":"agree","r":0,"tr":"conf","p":"conf6"},{"t":"أبتعد عن أي أداة تقنية جديدة","s":"applies","r":1,"tr":"learn","p":"learn8"},{"t":"لا أراجع نفسي ما دام أحد لم يلاحظ خطئي","s":"applies","r":1,"tr":"integ","p":"integ9"},{"t":"أؤمن أن للحقيقة أكثر من وجه","s":"agree","r":0,"tr":"cult","p":"cult6"},{"t":"هل ترى أن نجاحك الفردي أهم من نجاح الفريق دائمًا؟","s":"approx","r":1,"tr":"coop","p":"coop9"},{"t":"أستعيد هدوئي سريعًا بعد الضغط","s":"freq","r":0,"tr":"emo","p":"emo6"},{"t":"هل تراجع عواقب قرارك قبل تنفيذه؟","s":"approx","r":0,"tr":"resp","p":"resp2"},{"t":"هل تفقد أعصابك عند أول استفزاز؟","s":"approx","r":1,"tr":"emo","p":"emo9"},{"t":"هل تنتظر أن يحل غيرك مشكلاتك؟","s":"approx","r":1,"tr":"solo","p":"solo9"},{"t":"أفضّل بعض الناس على غيرهم بسبب أصلهم","s":"applies","r":1,"tr":"cult","p":"cult7"},{"t":"أتعامل بصبر مع الطلاب بطيئي الفهم","s":"freq","r":0,"tr":"emo","p":"emo7"},{"t":"أصدق القول حتى لو أضرني","s":"freq","r":0,"tr":"integ","p":"integ3"},{"t":"أبلّغ مديري بأسباب التأخير وأطلب وقتًا إضافيًا","s":"freq","r":0,"tr":"resp","p":"resp5"},{"t":"هل تظل غاضبًا ساعات بعد موقف بسيط؟","s":"approx","r":1,"tr":"emo","p":"emo3"},{"t":"أبادر باقتراح أفكار جديدة في العمل","s":"freq","r":0,"tr":"solo","p":"solo1"},{"t":"أقبل الاعتذار ممن أخطأ في حقي","s":"freq","r":0,"tr":"emo","p":"emo8"},{"t":"لا أستطيع إنجاز شيء إلا مع غيري","s":"agree","r":1,"tr":"solo","p":"solo3"},{"t":"لا أتخلى عن مبادئي مقابل ترقية","s":"agree","r":0,"tr":"integ","p":"integ2"},{"t":"أرفع صوتي على من يعارضني","s":"freq","r":1,"tr":"cult","p":"cult5"},{"t":"أحتاج إلى من يذكرني بمواعيدي","s":"freq","r":1,"tr":"solo","p":"solo8"},{"t":"هل تتحدث أمام جمع من الناس بارتياح؟","s":"approx","r":0,"tr":"conf","p":"conf4"},{"t":"هل تحرص على الاستماع إلى وجهة النظر الأخرى قبل الحكم؟","s":"approx","r":0,"tr":"cult","p":"cult3"},{"t":"أحافظ على هدوئي عند الضغط","s":"freq","r":0,"tr":"emo","p":"emo0"}],"ar":[{"q":"كل الكلمات الآتية همزتها همزة وصل، ما عدا:","o":["أُخت","ابنة","اسم","اثنتان"],"a":0,"e":"(أخت) همزتها همزة قطع، أما اسم وابنة واثنتان فهمزتها وصل."},{"q":"أداة الجزم من بين الأدوات الآتية:","o":["كي","أنْ","لم","لن"],"a":2,"e":"(لم) تجزم المضارع، أما لن وأنْ وكي فتنصب."},{"q":"جاء «المعلمون». إعراب ما تحته خط:","o":["مبتدأ مرفوع وعلامة رفعه الألف","مفعول به منصوب وعلامة نصبه الياء","فاعل مرفوع وعلامة رفعه الضمة","فاعل مرفوع وعلامة رفعه الواو"],"a":3,"e":"جمع المذكر السالم يُرفع بالواو."},{"q":"رأيتُ «المعلمين». إعراب ما تحته خط:","o":["مجرور بالياء","مفعول به منصوب وعلامة نصبه الياء","مفعول به منصوب وعلامة نصبه الفتحة","فاعل مرفوع وعلامة رفعه الواو"],"a":1,"e":"جمع المذكر السالم يُنصب ويُجر بالياء."},{"q":"الكلمة الممنوعة من الصرف من بين الكلمات الآتية:","o":["قلم","كتاب","معلم","مساجد"],"a":3,"e":"(مساجد) على صيغة منتهى الجموع (مفاعل)."},{"q":"المضارع المعرب من بين الجمل الآتية:","o":["والله ليكتبنَّ","الطالباتُ يكتبنَ","النساءُ يكتبنَ","الطلابُ يكتبون"],"a":3,"e":"المضارع يُبنى مع نون النسوة ونون التوكيد المباشرة، وغير ذلك يُعرب."},{"q":"توضع علامة الاستفهام (؟) في نهاية:","o":["جملة التعجب","جملة الأمر","الجملة الخبرية","الجملة الاستفهامية"],"a":3,"e":"تُستعمل للسؤال."},{"q":"الجملة (الشمسُ مشرقةٌ) جملة:","o":["ظرفية","اسمية","شرطية","فعلية"],"a":1,"e":"بدأت باسم (الشمس) وهو المبتدأ."},{"q":"مثنى (معلم) في حالة الرفع:","o":["معلمون","معلمين","معلمان","معلمات"],"a":2,"e":"المثنى يُرفع بالألف."},{"q":"المصدر من الفعل (اجتهد):","o":["مجتهد","اجتهاد","اجتهد","جهد"],"a":1,"e":"مصدر الفعل الخماسي على وزن (افتعال)."},{"q":"اسم الفاعل من الفعل (كتب):","o":["مكتب","كتابة","كاتب","مكتوب"],"a":2,"e":"اسم الفاعل من الثلاثي على وزن (فاعل)."},{"q":"قرأتُ ____ كتب:","o":["خمسةَ","خمسٍ","خمسُ","خمسَ"],"a":0,"e":"الأعداد من 3 إلى 10 تخالف المعدود في التذكير والتأنيث، و(كتب) جمع مذكر."},{"q":"المبتدأ في جملة (العلمُ نورٌ) هو:","o":["نور","العلم","العلم والنور","لا يوجد"],"a":1,"e":"المبتدأ اسم مرفوع في أول الجملة الاسمية."},{"q":"اسم (كان) في جملة (كان الجوُّ جميلًا):","o":["الجو","لا شيء","كان","جميلًا"],"a":0,"e":"تدخل (كان) على المبتدأ فيسمى اسمها ويرفع."},{"q":"الاسم المقصور من بين الأسماء الآتية:","o":["الفتى","القاضي","الساعي","المحامي"],"a":0,"e":"المقصور ما آخره ألف لازمة."},{"q":"جمع المؤنث السالم لكلمة (طالبة):","o":["طلاب","طالبات","طالبون","طوالب"],"a":1,"e":"يُجمع بإضافة ألف وتاء."},{"q":"الفعل الماضي المبني على الضم:","o":["كتبوا","كتبتُ","كتبَ","كتبا"],"a":0,"e":"يُبنى الماضي على الضم عند اتصاله بواو الجماعة."},{"q":"فعل الأمر من (قالَ):","o":["قولْ","قُلْ","قال","يقول"],"a":1,"e":"حُذفت الواو لالتقاء الساكنين."},{"q":"حرف العطف من بين الكلمات الآتية:","o":["على","ثم","إلى","في"],"a":1,"e":"ثم حرف عطف يفيد الترتيب مع التراخي."},{"q":"مرادف كلمة (أنار):","o":["أضاء","أخفى","أظلم","سكت"],"a":0,"e":"أنار وأضاء بمعنى واحد."},{"q":"الأسلوب في جملة (ما أجملَ السماءَ!):","o":["نهي","تعجب","نداء","استفهام"],"a":1,"e":"صيغة (ما أفعله) من صيغ التعجب القياسية."},{"q":"الأسلوب في جملة (لا تُهمِلْ واجبَك):","o":["أمر","نهي","تعجب","نفي"],"a":1,"e":"(لا) الناهية تجزم المضارع."},{"q":"نائب الفاعل في جملة (كُسِرَ الزجاجُ):","o":["كسر","الزجاج","كُسِرَ","لا يوجد"],"a":1,"e":"الفعل مبني للمجهول ورُفع ما بعده."},{"q":"علامة الجر الأصلية هي:","o":["السكون","الكسرة","الفتحة","الضمة"],"a":1,"e":"الكسرة أصل علامات الجر."},{"q":"الحرف الذي ينصب المبتدأ ويرفع الخبر من بين الآتي:","o":["هل","ليت","كان","لم"],"a":1,"e":"(ليت) من أخوات إنّ."}],"en":[{"q":"She ______ to school every day.","o":["go","gone","going","goes"],"a":3,"e":"Third person singular in the present simple takes -es: goes."},{"q":"They ______ football now.","o":["are playing","have play","played","play"],"a":0,"e":"'Now' signals the present continuous."},{"q":"I ______ my homework yesterday.","o":["did","doing","do","done"],"a":0,"e":"'Yesterday' needs the past simple: did."},{"q":"He has lived here ______ 2015.","o":["since","from","for","at"],"a":0,"e":"'Since' is used with a starting point in time."},{"q":"What is the opposite of \"hot\"?","o":["cold","cool","boiling","warm"],"a":0,"e":"Hot ↔ cold."},{"q":"What is the opposite of \"thick\"?","o":["tall","thin","heavy","wide"],"a":1,"e":"Thick ↔ thin."},{"q":"What is the opposite of \"happy\"?","o":["excited","sad","glad","kind"],"a":1,"e":"Happy ↔ sad."},{"q":"The plural of \"child\" is ______.","o":["childs","childrens","children","childes"],"a":2,"e":"Child is irregular: children."},{"q":"The plural of \"man\" is ______.","o":["men","mans","manes","mens"],"a":0,"e":"Man → men."},{"q":"The past tense of \"write\" is ______.","o":["writed","wrote","written","writes"],"a":1,"e":"Write – wrote – written."},{"q":"An elephant's long nose is called a ______.","o":["tail","trunk","horn","wing"],"a":1,"e":"The long nose of an elephant is its trunk."},{"q":"A person who teaches students is a ______.","o":["farmer","driver","doctor","teacher"],"a":3,"e":"A teacher teaches."},{"q":"We use a ______ to cut paper.","o":["pen","pair of scissors","spoon","brush"],"a":1,"e":"Scissors cut paper."},{"q":"She is ______ than her sister.","o":["more tall","tall","taller","tallest"],"a":2,"e":"Comparative: taller."},{"q":"This is the ______ book I have ever read.","o":["best","well","better","good"],"a":0,"e":"After 'the' + 'ever', use the superlative: best."},{"q":"I ______ been waiting for an hour.","o":["has","was","am","have"],"a":3,"e":"Present perfect continuous: have been waiting."},{"q":"He ______ TV when I arrived.","o":["watches","was watching","has watched","watched"],"a":1,"e":"Past continuous for an action in progress at a past moment."},{"q":"We ______ visit Aswan next summer.","o":["did","will","are","have"],"a":1,"e":"'Will' expresses the future."},{"q":"A fruit that is long, yellow and sweet is a ______.","o":["cherry","lemon","banana","grape"],"a":2,"e":"A banana is yellow and long."},{"q":"The cat sat ______ the table.","o":["under","at hand","between","among"],"a":0,"e":"'Under' is a preposition of place."},{"q":"The weather is ______ today; take an umbrella.","o":["windy","dry","rainy","sunny"],"a":2,"e":"You need an umbrella when it rains."},{"q":"Which word is a noun?","o":["happiness","beautiful","quickly","run"],"a":0,"e":"Happiness is a noun."},{"q":"Choose the correct sentence.","o":["She not like tea.","She doesn't likes tea.","She don't like tea.","She doesn't like tea."],"a":3,"e":"Does + not + base verb."},{"q":"The opposite of \"early\" is ______.","o":["late","first","soon","fast"],"a":0,"e":"Early ↔ late."},{"q":"The plural of \"woman\" is ______.","o":["womans","women","womanes","womens"],"a":1,"e":"Woman → women."}],"pc":[{"q":"وحدة الإدخال من بين الأجهزة الآتية:","o":["الطابعة","السماعات","الشاشة","لوحة المفاتيح"],"a":3,"e":"لوحة المفاتيح تُدخل البيانات للحاسب."},{"q":"وحدة الإخراج من بين الأجهزة الآتية:","o":["الطابعة","الماوس","الماسح الضوئي","الكاميرا"],"a":0,"e":"الطابعة تُخرج النتائج ورقيًا."},{"q":"الكاميرا الرقمية تُعد وحدة:","o":["تخزين","إخراج","إدخال","معالجة"],"a":2,"e":"تُدخل الصور إلى الحاسب."},{"q":"أصغر وحدة لقياس المعلومات:","o":["الميجابايت","البايت","البت (Bit)","الكيلوبايت"],"a":2,"e":"البت أصغر وحدة وتمثل 0 أو 1."},{"q":"أكبر وحدة قياس من بين الآتي:","o":["البايت","الميجابايت","الجيجابايت","الكيلوبايت"],"a":2,"e":"الترتيب تصاعديًا: بايت، كيلو، ميجا، جيجا."},{"q":"عدد البتات في البايت الواحد:","o":["4","2","16","8"],"a":3,"e":"البايت = 8 بت."},{"q":"الذاكرة العشوائية RAM تُعد ذاكرة:","o":["خارجية","للقراءة فقط","دائمة لا تتأثر بإطفاء الجهاز","مؤقتة تفقد محتواها عند إطفاء الجهاز"],"a":3,"e":"RAM ذاكرة مؤقتة."},{"q":"ROM هي ذاكرة:","o":["الشبكة","التخزين السحابي","القراءة فقط","الوصول العشوائي"],"a":2,"e":"Read Only Memory."},{"q":"وحدة المعالجة المركزية تُسمى اختصارًا:","o":["LAN","RAM","USB","CPU"],"a":3,"e":"Central Processing Unit."},{"q":"نظام التشغيل من بين البرامج الآتية:","o":["Excel","Windows","Chrome","Word"],"a":1,"e":"Windows نظام تشغيل، والباقي تطبيقات."},{"q":"ليس من أنظمة التشغيل:","o":["Photoshop","macOS","Android","Linux"],"a":0,"e":"Photoshop برنامج تصميم."},{"q":"اختصار النسخ في Windows:","o":["Ctrl + Z","Ctrl + V","Ctrl + C","Ctrl + X"],"a":2,"e":"C من Copy."},{"q":"اختصار اللصق:","o":["Ctrl + P","Ctrl + C","Ctrl + S","Ctrl + V"],"a":3,"e":"V للصق."},{"q":"اختصار التراجع عن آخر أمر:","o":["Ctrl + Z","Ctrl + F","Ctrl + A","Ctrl + Y"],"a":0,"e":"Z للتراجع (Undo)."},{"q":"اختصار حفظ الملف:","o":["Ctrl + O","Ctrl + P","Ctrl + N","Ctrl + S"],"a":3,"e":"S من Save."},{"q":"اختصار تحديد كل المحتوى:","o":["Ctrl + D","Ctrl + A","Ctrl + E","Ctrl + B"],"a":1,"e":"A من All."},{"q":"اختصار الطباعة:","o":["Ctrl + S","Ctrl + P","Ctrl + O","Ctrl + T"],"a":1,"e":"P من Print."},{"q":"اختصار البحث داخل المستند:","o":["Ctrl + F","Ctrl + H","Ctrl + K","Ctrl + G"],"a":0,"e":"F من Find."},{"q":"اختصار إغلاق النافذة الحالية:","o":["Alt + F4","Ctrl + F4","Tab","F5"],"a":0,"e":"Alt+F4 يغلق التطبيق."},{"q":"لتحديث الصفحة في المتصفح نضغط:","o":["F4","F11","F5","F1"],"a":2,"e":"F5 للتحديث."},{"q":"مفتاح F1 يستخدم غالبًا لفتح:","o":["الطباعة","الحفظ","المساعدة","التحديث"],"a":2,"e":"F1 مفتاح التعليمات."},{"q":"لإدراج جدول في Word نستخدم تبويب:","o":["إدراج (Insert)","عرض","مراجعة","تخطيط"],"a":0,"e":"الجداول ضمن تبويب إدراج."},{"q":"لتغيير اتجاه الصفحة من طولي إلى عرضي في Word نستخدم:","o":["مراسلات","تخطيط الصفحة","مراجعة","الصفحة الرئيسية"],"a":1,"e":"من تبويب تخطيط الصفحة."},{"q":"امتداد ملف Word الحديث:","o":["xlsx","docx","pptx","pdf"],"a":1,"e":"docx لمستندات Word."},{"q":"امتداد ملف Excel الحديث:","o":["txt","pptx","xlsx","docx"],"a":2,"e":"xlsx لجداول Excel."},{"q":"امتداد ملف العروض التقديمية:","o":["docx","jpg","pptx","xlsx"],"a":2,"e":"pptx لـ PowerPoint."},{"q":"امتداد ملف صورة:","o":["jpg","docx","exe","mp3"],"a":0,"e":"jpg امتداد صورة."},{"q":"امتداد ملف صوتي:","o":["docx","xlsx","jpg","mp3"],"a":3,"e":"mp3 للصوت."},{"q":"في Excel تبدأ الدالة بالعلامة:","o":["=","#","&","@"],"a":0,"e":"كل معادلة تبدأ بعلامة يساوي."},{"q":"الدالة التي تجمع نطاقًا من الخلايا في Excel:","o":["SUM","COUNT","AVG","MAX"],"a":0,"e":"SUM للجمع."},{"q":"الدالة التي تعطي أكبر قيمة في نطاق:","o":["MAX","MIN","SUM","AVERAGE"],"a":0,"e":"MAX للقيمة الأكبر."},{"q":"تقاطع الصف والعمود في Excel يسمى:","o":["نطاق","ورقة","مصنف","خلية"],"a":3,"e":"الخلية هي نقطة التقاء الصف والعمود."},{"q":"لعرض عرض الشرائح من البداية في PowerPoint نضغط:","o":["F5","F2","F3","F1"],"a":0,"e":"F5 يبدأ العرض من الأول."},{"q":"الاختصار الدولي لشبكة الإنترنت المحلية:","o":["LAN","WAN","URL","www"],"a":0,"e":"Local Area Network."},{"q":"المتصفح من بين البرامج الآتية:","o":["Windows","Photoshop","Google Chrome","Word"],"a":2,"e":"Chrome متصفح إنترنت."},{"q":"محرك بحث من بين الآتي:","o":["Zoom","Paint","Google","Excel"],"a":2,"e":"Google محرك بحث."},{"q":"عنوان الصفحة على الإنترنت يسمى:","o":["URL","CPU","USB","RAM"],"a":0,"e":"Uniform Resource Locator."},{"q":"البريد الإلكتروني يحتوي على العلامة الفاصلة:","o":["#","&","%","@"],"a":3,"e":"مثل name@example.com."},{"q":"برنامج مكافحة الفيروسات وظيفته:","o":["زيادة حجم الذاكرة","تسريع الإنترنت","حماية الجهاز من البرمجيات الضارة","تصميم الصور"],"a":2,"e":"يكتشف الفيروسات ويزيلها."},{"q":"للحفاظ على كلمة سر قوية يجب أن تتضمن:","o":["تاريخ ميلادك فقط","أرقامًا متتابعة","اسمك فقط","حروفًا وأرقامًا ورموزًا"],"a":3,"e":"التنوع يجعلها أصعب في التخمين."},{"q":"إذا توقف الماوس عن العمل نبدأ أولًا بـ:","o":["مسح القرص","فحص توصيله أو بطاريته","تغيير الشاشة","شراء حاسب جديد"],"a":1,"e":"الأسهل فحص التوصيل."},{"q":"لقفل الحاسب نختار من قائمة ابدأ:","o":["إيقاف التشغيل (Shut down)","نقل","نسخ","إعادة التسمية"],"a":0,"e":"الإيقاف الصحيح للحاسب."},{"q":"سلة المحذوفات (Recycle Bin) تحتفظ بـ:","o":["الملفات المحذوفة مؤقتًا","الصور فقط","الملفات المخفية","البرامج الجديدة"],"a":0,"e":"يمكن استعادة الملفات منها."},{"q":"القرص الصلب HDD وظيفته:","o":["إدخال الصوت","توصيل الشبكة","طباعة الورق","التخزين الدائم للبيانات"],"a":3,"e":"يخزن البيانات بشكل دائم."},{"q":"الفلاش USB يُستخدم في:","o":["تبريد الجهاز","نقل البيانات وتخزينها","تكبير الشاشة","طباعة الصور"],"a":1,"e":"وسيط تخزين محمول."},{"q":"البيانات الخام بعد معالجتها تتحول إلى:","o":["معلومات","برامج","فيروسات","أجهزة"],"a":0,"e":"المعالجة تحول البيانات إلى معلومات مفيدة."},{"q":"الملف الذي امتداده exe هو ملف:","o":["نصي","تنفيذي","صورة","صوت"],"a":1,"e":"exe ملف تشغيل برنامج."},{"q":"لإظهار شريط الأدوات المخفي في Word نستخدم تبويب:","o":["عرض (View)","مراجع","مراسلات","مراجعة"],"a":0,"e":"يمكن إظهار الأشرطة والمسطرة من تبويب عرض."},{"q":"برنامج Paint يُستخدم في:","o":["تشغيل الفيديو فقط","الرسم وتحرير الصور البسيطة","كتابة التقارير","حساب الجداول"],"a":1,"e":"Paint برنامج رسم بسيط."},{"q":"لتغيير حجم الخط في Word نستخدم أمر:","o":["الفاصل","التذييل","الهوامش","حجم الخط"],"a":3,"e":"موجود في تبويب الصفحة الرئيسية."}],"gk":[{"q":"عاصمة جمهورية مصر العربية:","o":["أسوان","القاهرة","الإسكندرية","الجيزة"],"a":1,"e":"القاهرة هي العاصمة."},{"q":"بُني السد العالي في محافظة:","o":["أسوان","سوهاج","المنيا","الأقصر"],"a":0,"e":"السد العالي جنوب مصر في أسوان."},{"q":"افتُتحت قناة السويس للملاحة عام:","o":["1914","1956","1973","1869"],"a":3,"e":"افتُتحت في عهد الخديوي إسماعيل."},{"q":"حرب أكتوبر المجيدة وقعت عام:","o":["1973","1967","1956","1982"],"a":0,"e":"عبر الجيش المصري القناة في 6 أكتوبر 1973."},{"q":"أكبر محافظات مصر مساحة:","o":["الغربية","القاهرة","الوادي الجديد","بورسعيد"],"a":2,"e":"الوادي الجديد أكبر المحافظات مساحة."},{"q":"أعلى قمة جبلية في مصر:","o":["جبل الطونة","جبل كاترين","جبل عتاقة","جبل موسى"],"a":1,"e":"يقع في جنوب سيناء."},{"q":"ينتهي نهر النيل عند:","o":["خليج السويس","البحر المتوسط","المحيط الهندي","البحر الأحمر"],"a":1,"e":"يصب في البحر المتوسط عبر فرعي رشيد ودمياط."},{"q":"الحاصل على جائزة نوبل في الأدب من مصر:","o":["نجيب محفوظ","توفيق الحكيم","طه حسين","العقاد"],"a":0,"e":"حصل عليها عام 1988."},{"q":"الحاصل على جائزة نوبل في الكيمياء من مصر:","o":["فاروق الباز","مصطفى مشرفة","أحمد زويل","مجدي يعقوب"],"a":2,"e":"حصل عليها عام 1999."},{"q":"مؤسس مصر الحديثة:","o":["الخديوي توفيق","محمد علي باشا","سعد زغلول","جمال عبد الناصر"],"a":1,"e":"تولى حكم مصر عام 1805."},{"q":"أنشأ الجامع الأزهر:","o":["الفاطميون","الأيوبيون","المماليك","العثمانيون"],"a":0,"e":"تأسس الأزهر عام 970م."},{"q":"المتحف المصري الكبير يقع بالقرب من:","o":["مكتبة الإسكندرية","قلعة صلاح الدين","أهرامات الجيزة","معبد الأقصر"],"a":2,"e":"يقع على مقربة من هضبة الأهرام."},{"q":"رؤية مصر 2030 تُعد:","o":["استراتيجية للتنمية المستدامة","مشروعًا للإسكان فقط","اتفاقية دولية للتجارة","برنامجًا للتعليم الجامعي فقط"],"a":0,"e":"أُطلقت عام 2016."},{"q":"مبادرة «حياة كريمة» تستهدف:","o":["بناء الجامعات الخاصة","تنمية الريف وتحسين مستوى معيشة سكانه","إنشاء مطارات","التجارة الخارجية"],"a":1,"e":"تركز على القرى الأكثر احتياجًا."},{"q":"البنك المركزي المصري هو الجهة المسؤولة عن:","o":["تنظيم الإعلام","جمع الضرائب","إدارة الجامعات","إصدار العملة والسياسة النقدية"],"a":3,"e":"يصدر النقد ويشرف على البنوك."},{"q":"الشمول المالي يعني:","o":["إلغاء التعامل النقدي بقرار","منع الاقتراض","حصر الأموال في البنوك الكبرى","إتاحة الخدمات المالية لكل فئات المجتمع"],"a":3,"e":"يهدف إلى دمج الجميع في النظام المالي."},{"q":"مقر جامعة الدول العربية في:","o":["القاهرة","الرياض","تونس","بغداد"],"a":0,"e":"مقرها الدائم في القاهرة."},{"q":"عملة جمهورية مصر العربية:","o":["الريال","الدرهم","الدينار","الجنيه"],"a":3,"e":"الجنيه المصري."},{"q":"أطول نهر في أفريقيا:","o":["النيل","الكونغو","النيجر","الزمبيزي"],"a":0,"e":"يمر بعدة دول ويصب في مصر."},{"q":"أكبر محيطات العالم:","o":["الهادئ","الأطلسي","الهندي","المتجمد الشمالي"],"a":0,"e":"المحيط الهادئ أكبرها مساحة."},{"q":"أكبر كواكب المجموعة الشمسية:","o":["زحل","المريخ","المشتري","الأرض"],"a":2,"e":"المشتري أضخم الكواكب."},{"q":"أكبر الصحاري الحارة في العالم:","o":["الصحراء الكبرى","جوبي","النفود","الربع الخالي"],"a":0,"e":"تقع في شمال أفريقيا."},{"q":"استضافت مدينة شرم الشيخ مؤتمر المناخ COP27 عام:","o":["2015","2024","2022","2019"],"a":2,"e":"عُقد في نوفمبر 2022."},{"q":"العاصمة الإدارية الجديدة تقع شرق:","o":["أسوان","الإسكندرية","السويس","القاهرة"],"a":3,"e":"مدينة حكومية جديدة شرق القاهرة."},{"q":"حقل ظهر هو حقل:","o":["فوسفات","بترول في الصحراء الغربية","ذهب","غاز طبيعي في البحر المتوسط"],"a":3,"e":"اكتُشف عام 2015."},{"q":"بنبان في أسوان من أكبر مجمعات:","o":["الفحم","الطاقة النووية","الطاقة الشمسية","طاقة الرياح"],"a":2,"e":"يضم محطات شمسية ضخمة."},{"q":"الأمن السيبراني يعني:","o":["بناء الجسور","تنظيم المرور","حماية الأنظمة والشبكات من الهجمات الإلكترونية","صناعة السيارات"],"a":2,"e":"يتعلق بأمن المعلومات."},{"q":"الحاصل على جائزة نوبل للسلام عام 1978 من مصر:","o":["أحمد زويل","نجيب محفوظ","محمد البرادعي","أنور السادات"],"a":3,"e":"شاركه مناحم بيجين في الجائزة."},{"q":"مسلة الأقصر وأبو الهول من آثار:","o":["اليونان فقط","بلاد الشام","الرومان فقط","مصر القديمة"],"a":3,"e":"تعود للحضارة المصرية القديمة."},{"q":"مدينة الإسكندرية أسسها:","o":["محمد علي","عمرو بن العاص","الإسكندر الأكبر","رمسيس الثاني"],"a":2,"e":"أسسها عام 331 ق.م."}],"ed":[{"q":"النظرية التي تؤكد أن التعلم يحدث بالارتباط بين المثير والاستجابة هي:","o":["المعرفية","البنائية","السلوكية","الإنسانية"],"a":2,"e":"أصحابها: بافلوف وسكنر وثورندايك."},{"q":"صاحب نظرية الإشراط الكلاسيكي:","o":["بياجيه","بافلوف","فيجوتسكي","بندورا"],"a":1,"e":"تجربة الكلب والجرس."},{"q":"صاحب نظرية الإشراط الإجرائي:","o":["بافلوف","بلوم","أريكسون","سكنر"],"a":3,"e":"التعزيز والعقاب لتشكيل السلوك."},{"q":"صاحب نظرية النمو المعرفي ومراحله الأربع:","o":["كولبرج","بياجيه","سكنر","ماسلو"],"a":1,"e":"الحسحركية، ما قبل العمليات، العمليات المادية، العمليات المجردة."},{"q":"صاحب نظرية منطقة النمو الوشيكة:","o":["بافلوف","بياجيه","فيجوتسكي","ثورندايك"],"a":2,"e":"الفرق بين ما يستطيعه المتعلم وحده وبمساعدة."},{"q":"صاحب نظرية التعلم بالملاحظة والنمذجة:","o":["سكنر","بافلوف","باندورا","بياجيه"],"a":2,"e":"تعلم الأطفال بتقليد النماذج."},{"q":"صاحب نظرية الذكاءات المتعددة:","o":["ماسلو","جاردنر","أريكسون","بلوم"],"a":1,"e":"تضم الذكاء الموسيقي واللغوي والمنطقي وغيرها."},{"q":"الطالب الذي يتميز بالإيقاع والألحان يتمتع بالذكاء:","o":["الحركي","الطبيعي","اللغوي","الموسيقي"],"a":3,"e":"من الذكاءات المتعددة."},{"q":"هرم الحاجات الإنسانية وضعه:","o":["بياجيه","بلوم","جاردنر","ماسلو"],"a":3,"e":"يبدأ بالحاجات الفسيولوجية."},{"q":"أعلى مستوى في هرم ماسلو:","o":["الانتماء","الأمان","الحاجات الفسيولوجية","تحقيق الذات"],"a":3,"e":"قمة الهرم."},{"q":"تصنيف بلوم يرتب الأهداف:","o":["الجسمية فقط","المعرفية من التذكر إلى الإبداع","الاجتماعية فقط","الحركية فقط"],"a":1,"e":"يتدرج من التذكر إلى الفهم إلى التطبيق إلى التحليل إلى التقويم إلى الإبداع."},{"q":"التقويم الذي يتم أثناء عملية التعلم لتحسينها:","o":["التكويني","التشخيصي","التتبعي","النهائي"],"a":0,"e":"يرصد التقدم ويعالج الضعف أثناء التعلم."},{"q":"التقويم الذي يتم في نهاية العام الدراسي لنقل الطالب:","o":["المستمر","التكويني","التشخيصي","النهائي (الختامي)"],"a":3,"e":"يحدد النجاح والانتقال."},{"q":"التقويم الذي يتم قبل بدء التعلم لمعرفة مستوى الطالب:","o":["التشخيصي","النهائي","التكويني","الختامي"],"a":0,"e":"يحدد نقطة البداية."},{"q":"الاختبار الذي يعطي الدرجة نفسها لأي مصحح يتصف بـ:","o":["الشمول","التنوع","الموضوعية","الصدق"],"a":2,"e":"الموضوعية ثبات التصحيح."},{"q":"صدق الاختبار يعني أنه:","o":["قصير","يُصحح آليًا","يقيس ما وُضع لقياسه","سهل جدًا"],"a":2,"e":"الصدق قياس الهدف المطلوب."},{"q":"ثبات الاختبار يعني:","o":["صعوبة الأسئلة","اختلاف الطلاب","كثرة الأسئلة","إعطاء النتائج نفسها عند إعادته في ظروف مماثلة"],"a":3,"e":"الاتساق في النتائج."},{"q":"الفروق الفردية بين الطلاب تتطلب من المعلم:","o":["الاعتماد على الحفظ","التنويع في الأنشطة وأساليب التدريس","تدريس الجميع بنفس الطريقة","استبعاد الضعاف"],"a":1,"e":"مراعاة اختلاف القدرات."},{"q":"الإرشاد النفسي يقوم على علاقة بين:","o":["الطالب والمعلم","المرشد والمسترشد","المعلم والإدارة","المدير والمفتش"],"a":1,"e":"تقوم على الثقة والتعاون."},{"q":"دور المسترشد في العملية الإرشادية:","o":["التعاون مع المرشد وبذل الجهد","الصمت","تنفيذ كل ما يقال دون تفكير","الرفض الدائم"],"a":0,"e":"التعاون والمشاركة الفاعلة."},{"q":"طالب مشاغب في الفصل، فتصرفك الأمثل:","o":["تهمله","تطرده من الفصل","تسخر منه","تعرف سبب سلوكه وتعالجه بهدوء وتشركه في نشاط"],"a":3,"e":"معالجة السبب أولًا."},{"q":"طالب خجول لا يشارك، فتصرفك الأمثل:","o":["تجبره على الحديث أمام الجميع","تشجعه وتمنحه مهام بسيطة تدريجيًا","تعاقبه","تتجاهله"],"a":1,"e":"التدرج وبناء الثقة."},{"q":"طالب انطوائي ومنعزل، فتصرفك الأمثل:","o":["تقلل درجاته","تتركه وحده","تبني علاقة معه وتدمجه تدريجيًا مع زملائه","توبخه"],"a":2,"e":"الدمج التدريجي."},{"q":"تشاجر طالبان في الفصل، فتصرفك الأول:","o":["تحوّلهما للشرطة","تتجاهلهما","تعاقبهما أمام الفصل","توقف الشجار فورًا وتفصل بينهما بهدوء"],"a":3,"e":"السلامة أولًا ثم الاستماع."},{"q":"طالب يكذب كثيرًا، فتصرفك:","o":["تفضحه أمام الفصل","تتجاهل الأمر","تضربه","تبحث عن الدافع وتشجع الصدق وتتجنب الإحراج"],"a":3,"e":"معالجة سبب الكذب."},{"q":"طالب يغش في الاختبار، فتصرفك:","o":["تتركه","تنبهه بهدوء وتتخذ الإجراء حسب اللائحة وتعالج السبب","تسخر منه","تمزق ورقته أمام الجميع"],"a":1,"e":"الالتزام باللوائح مع الحفاظ على كرامته."},{"q":"طالب متأخر دراسيًا، فتصرفك:","o":["تهمله","تخبره بأنه فاشل","تشخص أسباب التأخر وتضع خطة علاجية","تنقله لفصل آخر"],"a":2,"e":"التشخيص ثم العلاج."},{"q":"طالب متفوق يمل من الدرس، فتصرفك:","o":["تقدم له أنشطة إثرائية","تهمله","تعاقبه","تكلفه بما لا يخص الدرس"],"a":0,"e":"إثراء المنهج للمتفوقين."},{"q":"مدة انتباه الطفل في المرحلة المبكرة:","o":["قصيرة","ثابتة طوال الحصة","طويلة جدًا","غير موجودة"],"a":0,"e":"تقل مدة الانتباه كلما صغر السن."},{"q":"لتحسين مشاركة الطلاب نستخدم:","o":["المحاضرة الطويلة فقط","التعلم النشط والأسئلة المفتوحة","العقاب","الصمت التام"],"a":1,"e":"يزيد التفاعل."},{"q":"أفضل أسلوب لتعزيز السلوك الإيجابي:","o":["التجاهل","الحرمان الدائم","المدح والتعزيز المناسب","السخرية"],"a":2,"e":"التعزيز الإيجابي."},{"q":"الأهداف السلوكية الجيدة تتصف بأنها:","o":["طويلة جدًا","عامة وغامضة","غير قابلة للملاحظة","محددة وقابلة للقياس"],"a":3,"e":"تصاغ بفعل سلوكي قابل للقياس."},{"q":"من أمثلة التعلم التعاوني:","o":["الاستماع فقط","الحفظ الفردي","عمل الطلاب في مجموعات صغيرة لهدف مشترك","الاختبار الفردي فقط"],"a":2,"e":"يتقاسم الطلاب المهام."},{"q":"إدارة الصف الناجحة تعتمد على:","o":["قواعد واضحة يتفق عليها الجميع","تجاهل المخالفات","الفوضى","العقاب المستمر"],"a":0,"e":"الوضوح والاتساق."},{"q":"نظرية أريكسون تركز على:","o":["الذكاء فقط","التحليل اللغوي","النمو النفسي الاجتماعي","الإشراط"],"a":2,"e":"ثماني مراحل لكل منها أزمة."},{"q":"نظرية كولبرج تفسر:","o":["النمو الحركي","النمو الخلقي","النمو اللغوي","التذكر"],"a":1,"e":"ثلاثة مستويات للنمو الخلقي."},{"q":"قانون الأثر لـ ثورندايك يقول:","o":["السلوك الذي يعقبه إشباع يتكرر","كل سلوك يزول","التعلم لا يحتاج إلى تعزيز","العقاب يصنع التعلم دائمًا"],"a":0,"e":"الأثر الجيد يقوي الارتباط."},{"q":"نظرية أوزوبل تؤكد أهمية:","o":["الحفظ الآلي","الصدفة","المعرفة السابقة في التعلم ذي المعنى","العقاب"],"a":2,"e":"ربط الجديد بالمعرفة السابقة."},{"q":"تتعلق المرحلة الحسحركية بـ:","o":["الشباب","المراهقة","الطفولة المبكرة جدًا (من الميلاد إلى سنتين)","الشيخوخة"],"a":2,"e":"أولى مراحل بياجيه."},{"q":"عندما يطلب منك مدير المدرسة تنفيذ أمر يخالف اللائحة، فتصرفك:","o":["تتحداه أمام الجميع","توضح الأمر بأدب وتلتزم باللوائح","تنفذ دون نقاش","تتجاهله"],"a":1,"e":"الالتزام باللوائح مع الاحترام."},{"q":"ولي أمر غاضب يشتكي من درجة ابنه، فتصرفك:","o":["تستمع بهدوء وتشرح معايير التقييم","تتجاهله","ترد بحدة","تطرده"],"a":0,"e":"الاستماع والتوضيح."},{"q":"طالب يعاني من صعوبات تعلم، فالإجراء الأول:","o":["التشخيص بالتعاون مع المختصين","الإهمال","العقاب","النقل لفصل أضعف"],"a":0,"e":"التشخيص يسبق العلاج."},{"q":"الواجب المنزلي الفعال:","o":["كثير ومتكرر","صعب جدًا","غير مرتبط بالدرس","متنوع ومناسب لمستوى الطالب"],"a":3,"e":"يعزز التعلم دون إرهاق."},{"q":"أفضل طريقة لتقديم التغذية الراجعة:","o":["متأخرة جدًا","عامة","قاسية","فورية وبناءة ومحددة"],"a":3,"e":"تساعد الطالب على التحسن."},{"q":"القدوة في سلوك المعلم تؤثر في:","o":["جدول الحصص فقط","سلوك الطلاب","اللوائح فقط","المباني"],"a":1,"e":"الطلاب يتعلمون بالتقليد."},{"q":"استراتيجية العصف الذهني تهدف إلى:","o":["تقييم السلوك","اختبار الطلاب","توليد أكبر عدد من الأفكار","الحفظ الآلي"],"a":2,"e":"تشجع الإبداع."},{"q":"المعلم الناجح يتصف بأنه:","o":["متردد","متمكن من مادته ويراعي طلابه","صارم دائمًا","متساهل دائمًا"],"a":1,"e":"التمكن العلمي والمهني."},{"q":"عند حدوث موقف طارئ في الفصل، فالأولوية:","o":["سلامة الطلاب","تجاهل الموقف","إنهاء الدرس","معاقبة المسؤول"],"a":0,"e":"السلامة قبل أي اعتبار."},{"q":"الحوار والمناقشة في التدريس يناسبان:","o":["العقاب","تنمية التفكير والتعبير","الحفظ فقط","الصمت"],"a":1,"e":"يشجعان مشاركة الطلاب."},{"q":"تهيئة الطلاب قبل بدء الدرس تسمى:","o":["التقويم","الخاتمة","التمهيد","الواجب"],"a":2,"e":"التمهيد يستثير الانتباه ويربط بالسابق."}],"sp":[{"q":"«أنا» في قولنا: (أنا أحب العلم) ضمير:","o":["متصل في محل جر","منفصل في محل نصب","منفصل في محل رفع مبتدأ","مستتر"],"a":2,"e":"الضمير (أنا) منفصل وقع مبتدأ."},{"q":"إعراب (مجتهدًا) في: كان الطالبُ مجتهدًا:","o":["نعت","مفعول به","حال منصوب","خبر كان منصوب"],"a":3,"e":"تنصب كان الخبر."},{"q":"الفعل (يرى) في: لن ترى ... يُعرب:","o":["مجزوم بالسكون","مضارع منصوب بلن وعلامة نصبه الفتحة المقدرة للتعذر","منصوب بالفتحة الظاهرة","مرفوع بالضمة"],"a":1,"e":"آخره ألف فتقدر الفتحة للتعذر."},{"q":"الفعل (يدعو) في: لن يدعوَ ... يُنصب بـ:","o":["فتحة مقدرة للتعذر","ضمة مقدرة للثقل","حذف النون","فتحة ظاهرة"],"a":3,"e":"الواو تظهر عليها الفتحة."},{"q":"المضارع (يسعى) إذا جُزم:","o":["يُحذف أوله","تظهر الضمة","يُحذف حرف العلة (لم يسعَ)","تظهر الفتحة"],"a":2,"e":"الجزم بحذف حرف العلة."},{"q":"الممنوع من الصرف للعلمية والتأنيث:","o":["كتاب","محمد","مدرسة","فاطمة"],"a":3,"e":"علم مؤنث."},{"q":"الممنوع من الصرف للعلمية والعجمة:","o":["أحمد","عمر","عثمان","إبراهيم"],"a":3,"e":"إبراهيم علم أعجمي."},{"q":"الممنوع من الصرف للعلمية وزيادة الألف والنون:","o":["عثمان","فاطمة","إبراهيم","أحمد"],"a":0,"e":"علم في آخره ألف ونون زائدتان."},{"q":"الممنوع من الصرف للعلمية والعدل:","o":["زينب","عمر","عثمان","أحمد"],"a":1,"e":"عمر معدول عن عامر."},{"q":"الصفة الممنوعة من الصرف على وزن (أفعل):","o":["طويل","جميل","كبير","أحمر"],"a":3,"e":"(أحمر) صفة على وزن أفعل مؤنثها فعلاء."},{"q":"جمع (قصيدة):","o":["قصيد","قصائد","قصيدات","قصائر"],"a":1,"e":"جمع تكسير على فعائل."},{"q":"جمع (مسجد):","o":["مسجدان","مسجدات","مسجدين","مساجد"],"a":3,"e":"جمع تكسير على مفاعل."},{"q":"المثنى من (حبلى):","o":["حبليان","حبلين","حبلاوان","حبلتان"],"a":0,"e":"المقصور الرابع يُقلب ألفه ياء في المثنى."},{"q":"الفعل (افتتح) على وزن:","o":["استفعل","افتعل","تفاعل","انفعل"],"a":1,"e":"زيد فيه الهمزة والتاء."},{"q":"الفعل (استغفر) على وزن:","o":["انفعل","أفعل","افتعل","استفعل"],"a":3,"e":"زيد بالهمزة والسين والتاء."},{"q":"الفعل (استخرج) مصدره:","o":["مخرج","استخراج","إخراج","خروج"],"a":1,"e":"مصدر الخماسي والسداسي بكسر ما قبل الآخر وزيادة ألف."},{"q":"مصدر الفعل (قاتل):","o":["قتل فقط","مقاتلة وقتال","قاتل","تقاتل"],"a":1,"e":"مصدر فاعل على مفاعلة وفعال."},{"q":"اسم الهيئة من الفعل (جلس):","o":["جُلوس","جَلسة","جِلسة","مجلس"],"a":2,"e":"اسم الهيئة على وزن فِعلة."},{"q":"اسم المرة من (ضرب):","o":["ضارب","مضرب","ضَربة","ضِربة"],"a":2,"e":"اسم المرة على وزن فَعلة."},{"q":"اسم المفعول من (استفاد):","o":["مستفيد","مفيد","استفادة","مستفاد"],"a":3,"e":"بقلب حرف المضارعة ميمًا مضمومة وفتح ما قبل الآخر."},{"q":"اسم الفاعل من (استخرج):","o":["استخراج","خارج","مستخرَج","مستخرِج"],"a":3,"e":"بكسر ما قبل الآخر."},{"q":"تصغير (ناجح):","o":["نُوَيْجِح","نُجيح","نَاجِح","نُجَيح"],"a":0,"e":"فاعل يُصغر على فُعَيعِل بقلب الألف واوًا: نُوَيجح."},{"q":"تصغير (رجل):","o":["رِجال","رَجُل","رُجَيل","رَجِيل"],"a":2,"e":"على وزن فُعَيل."},{"q":"تصغير (كتاب):","o":["كَتَاب","كِتَيب","كُتَيب","كُتَيِّب"],"a":3,"e":"الألف الثانية تُقلب ياء وتدغم."},{"q":"التصغير الصحيح للاسم الخماسي بلا حذف:","o":["فَعِيل","فُعَيعِيل","فُعَيل","فُعَيعِل"],"a":1,"e":"يُصغر على فعيعيل مثل سفرجل: سُفَيرِجل."},{"q":"المنسوب إلى (مصر):","o":["مصراويّ","مصرويّ","مصرانيّ","مصريّ"],"a":3,"e":"بزيادة ياء مشددة."},{"q":"النسب إلى (مكة):","o":["مكاويّ","مكانيّ","مكتيّ","مكّيّ"],"a":3,"e":"تُحذف التاء عند النسب."},{"q":"النسب إلى (فتى):","o":["فتويّ","فتاويّ","فتيّ","فتائيّ"],"a":0,"e":"المقصور الثلاثي تُقلب ألفه واوًا."},{"q":"«لا» في (لا شكَّ) هي:","o":["لا النافية للجنس","لا الجازمة","لا العاملة عمل ليس","لا الناهية"],"a":0,"e":"تعمل عمل إنّ وتبني اسمها على الفتح."},{"q":"إعراب (شكَّ) في (لا شكَّ فيه):","o":["مبتدأ مرفوع","نعت مرفوع","مفعول به","اسم لا مبني على الفتح في محل نصب"],"a":3,"e":"المفرد يبنى على الفتح."},{"q":"أنْ والمضارع بعدها:","o":["تنصبه","تجزمه","ترفعه","تبنيه"],"a":0,"e":"أنْ حرف نصب."},{"q":"لام الأمر في (لتكتبْ) تفيد:","o":["الطلب وتجزم المضارع","التوكيد","النفي","النصب"],"a":0,"e":"تجزم الفعل المضارع."},{"q":"الاسم المعرب هو:","o":["ما لازم حالة واحدة","ما بدأ بحرف","الحرف دائمًا","ما تغير آخره بتغير موقعه"],"a":3,"e":"الاسم المعرب يتغير آخره."},{"q":"خبر (أنشأ) أحد أفعال الشروع يأتي:","o":["جملة فعلية فعلها مضارع بلا أن","اسمًا مفردًا","فعلًا ماضيًا","جملة اسمية"],"a":0,"e":"مثل: أنشأ الطالب يكتب."},{"q":"أسلوب الشرط يحتاج إلى:","o":["تمييز","فعل الشرط وجوابه","حال","مفعول مطلق"],"a":1,"e":"مثل: إنْ تجتهدْ تنجحْ."},{"q":"جواب الشرط يُقرن بالفاء إذا كان:","o":["مثنى","جملة اسمية","مضارعًا مجزومًا","ماضيًا متصرفًا"],"a":1,"e":"مثل: من يجتهد فله الجائزة."},{"q":"«ما» في (ما أجمل السماء) نوعها:","o":["استفهامية","موصولة","نافية","تعجبية"],"a":3,"e":"للتعجب."},{"q":"المفعول لأجله هو:","o":["نعت","مصدر قلبي يذكر علة الفعل ويشاركه في الزمن والفاعل","حال","تمييز"],"a":1,"e":"مثل: وقفت احترامًا للمعلم."},{"q":"إعراب (أسدًا) في: رأيت أسدًا في الحديقة:","o":["خبر","مضاف إليه","فاعل","مفعول به منصوب"],"a":3,"e":"وقع عليه فعل الرؤية."},{"q":"التشبيه الذي حُذف فيه وجه الشبه والأداة:","o":["مرسل","بليغ","مجمل فقط","مؤكد"],"a":1,"e":"مثل: العلم نور."},{"q":"الاستعارة التصريحية يُذكر فيها:","o":["المشبه والمشبه به","الأداة فقط","المشبه به وحده","المشبه وحده"],"a":2,"e":"يصرَّح بالمشبه به."},{"q":"الاستعارة المكنية يحذف فيها:","o":["الأداة والوجه معًا","المشبه به ويبقى شيء من لوازمه","الفعل","المشبه"],"a":1,"e":"يُرمز للمشبه به بلازمة."},{"q":"المجاز المرسل علاقته:","o":["غير المشابهة","التضاد","المشابهة دائمًا","السببية فقط"],"a":0,"e":"مثل: السببية والجزئية والكلية."},{"q":"الجناس التام هو ما اتفق فيه اللفظان في:","o":["الوزن فقط","نوع الحروف وعددها وهيئتها وترتيبها","المعنى","الحرف الأخير فقط"],"a":1,"e":"ويختلفان في المعنى."},{"q":"حذف الفاعل والإتيان بنائبه يسمى:","o":["التوكيد","الحذف الصرفي","الاستثناء","البناء للمجهول"],"a":3,"e":"يُبنى الفعل للمجهول."},{"q":"قصر الصفة على الموصوف طريقه:","o":["الاستفهام","النداء","النفي والاستثناء","الشرط"],"a":2,"e":"ما شاعرٌ إلا أحمد."},{"q":"الخبر والإنشاء من علم:","o":["العروض","المعاني","البديع","البيان"],"a":1,"e":"هو من مباحث علم المعاني."},{"q":"التشبيه والاستعارة والكناية من علم:","o":["المعاني","البديع","البيان","النحو"],"a":2,"e":"علم البيان."},{"q":"الجناس والطباق والسجع من علم:","o":["البيان","المعاني","الصرف","البديع"],"a":3,"e":"علم البديع."},{"q":"لقب بـ(أمير الشعراء) في الشعر الحديث:","o":["البارودي","الجارم","حافظ إبراهيم","أحمد شوقي"],"a":3,"e":"بويع بإمارة الشعر."}],"spBank":{"ar":[{"q":"«أنا» في قولنا: (أنا أحب العلم) ضمير:","o":["متصل في محل جر","منفصل في محل نصب","منفصل في محل رفع مبتدأ","مستتر"],"a":2,"e":"الضمير (أنا) منفصل وقع مبتدأ."},{"q":"إعراب (مجتهدًا) في: كان الطالبُ مجتهدًا:","o":["نعت","مفعول به","حال منصوب","خبر كان منصوب"],"a":3,"e":"تنصب كان الخبر."},{"q":"الفعل (يرى) في: لن ترى ... يُعرب:","o":["مجزوم بالسكون","مضارع منصوب بلن وعلامة نصبه الفتحة المقدرة للتعذر","منصوب بالفتحة الظاهرة","مرفوع بالضمة"],"a":1,"e":"آخره ألف فتقدر الفتحة للتعذر."},{"q":"الفعل (يدعو) في: لن يدعوَ ... يُنصب بـ:","o":["فتحة مقدرة للتعذر","ضمة مقدرة للثقل","حذف النون","فتحة ظاهرة"],"a":3,"e":"الواو تظهر عليها الفتحة."},{"q":"المضارع (يسعى) إذا جُزم:","o":["يُحذف أوله","تظهر الضمة","يُحذف حرف العلة (لم يسعَ)","تظهر الفتحة"],"a":2,"e":"الجزم بحذف حرف العلة."},{"q":"الممنوع من الصرف للعلمية والتأنيث:","o":["كتاب","محمد","مدرسة","فاطمة"],"a":3,"e":"علم مؤنث."},{"q":"الممنوع من الصرف للعلمية والعجمة:","o":["أحمد","عمر","عثمان","إبراهيم"],"a":3,"e":"إبراهيم علم أعجمي."},{"q":"الممنوع من الصرف للعلمية وزيادة الألف والنون:","o":["عثمان","فاطمة","إبراهيم","أحمد"],"a":0,"e":"علم في آخره ألف ونون زائدتان."},{"q":"الممنوع من الصرف للعلمية والعدل:","o":["زينب","عمر","عثمان","أحمد"],"a":1,"e":"عمر معدول عن عامر."},{"q":"الصفة الممنوعة من الصرف على وزن (أفعل):","o":["طويل","جميل","كبير","أحمر"],"a":3,"e":"(أحمر) صفة على وزن أفعل مؤنثها فعلاء."},{"q":"جمع (قصيدة):","o":["قصيد","قصائد","قصيدات","قصائر"],"a":1,"e":"جمع تكسير على فعائل."},{"q":"جمع (مسجد):","o":["مسجدان","مسجدات","مسجدين","مساجد"],"a":3,"e":"جمع تكسير على مفاعل."},{"q":"المثنى من (حبلى):","o":["حبليان","حبلين","حبلاوان","حبلتان"],"a":0,"e":"المقصور الرابع يُقلب ألفه ياء في المثنى."},{"q":"الفعل (افتتح) على وزن:","o":["استفعل","افتعل","تفاعل","انفعل"],"a":1,"e":"زيد فيه الهمزة والتاء."},{"q":"الفعل (استغفر) على وزن:","o":["انفعل","أفعل","افتعل","استفعل"],"a":3,"e":"زيد بالهمزة والسين والتاء."},{"q":"الفعل (استخرج) مصدره:","o":["مخرج","استخراج","إخراج","خروج"],"a":1,"e":"مصدر الخماسي والسداسي بكسر ما قبل الآخر وزيادة ألف."},{"q":"مصدر الفعل (قاتل):","o":["قتل فقط","مقاتلة وقتال","قاتل","تقاتل"],"a":1,"e":"مصدر فاعل على مفاعلة وفعال."},{"q":"اسم الهيئة من الفعل (جلس):","o":["جُلوس","جَلسة","جِلسة","مجلس"],"a":2,"e":"اسم الهيئة على وزن فِعلة."},{"q":"اسم المرة من (ضرب):","o":["ضارب","مضرب","ضَربة","ضِربة"],"a":2,"e":"اسم المرة على وزن فَعلة."},{"q":"اسم المفعول من (استفاد):","o":["مستفيد","مفيد","استفادة","مستفاد"],"a":3,"e":"بقلب حرف المضارعة ميمًا مضمومة وفتح ما قبل الآخر."},{"q":"اسم الفاعل من (استخرج):","o":["استخراج","خارج","مستخرَج","مستخرِج"],"a":3,"e":"بكسر ما قبل الآخر."},{"q":"تصغير (ناجح):","o":["نُوَيْجِح","نُجيح","نَاجِح","نُجَيح"],"a":0,"e":"فاعل يُصغر على فُعَيعِل بقلب الألف واوًا: نُوَيجح."},{"q":"تصغير (رجل):","o":["رِجال","رَجُل","رُجَيل","رَجِيل"],"a":2,"e":"على وزن فُعَيل."},{"q":"تصغير (كتاب):","o":["كَتَاب","كِتَيب","كُتَيب","كُتَيِّب"],"a":3,"e":"الألف الثانية تُقلب ياء وتدغم."},{"q":"التصغير الصحيح للاسم الخماسي بلا حذف:","o":["فَعِيل","فُعَيعِيل","فُعَيل","فُعَيعِل"],"a":1,"e":"يُصغر على فعيعيل مثل سفرجل: سُفَيرِجل."},{"q":"المنسوب إلى (مصر):","o":["مصراويّ","مصرويّ","مصرانيّ","مصريّ"],"a":3,"e":"بزيادة ياء مشددة."},{"q":"النسب إلى (مكة):","o":["مكاويّ","مكانيّ","مكتيّ","مكّيّ"],"a":3,"e":"تُحذف التاء عند النسب."},{"q":"النسب إلى (فتى):","o":["فتويّ","فتاويّ","فتيّ","فتائيّ"],"a":0,"e":"المقصور الثلاثي تُقلب ألفه واوًا."},{"q":"«لا» في (لا شكَّ) هي:","o":["لا النافية للجنس","لا الجازمة","لا العاملة عمل ليس","لا الناهية"],"a":0,"e":"تعمل عمل إنّ وتبني اسمها على الفتح."},{"q":"إعراب (شكَّ) في (لا شكَّ فيه):","o":["مبتدأ مرفوع","نعت مرفوع","مفعول به","اسم لا مبني على الفتح في محل نصب"],"a":3,"e":"المفرد يبنى على الفتح."},{"q":"أنْ والمضارع بعدها:","o":["تنصبه","تجزمه","ترفعه","تبنيه"],"a":0,"e":"أنْ حرف نصب."},{"q":"لام الأمر في (لتكتبْ) تفيد:","o":["الطلب وتجزم المضارع","التوكيد","النفي","النصب"],"a":0,"e":"تجزم الفعل المضارع."},{"q":"الاسم المعرب هو:","o":["ما لازم حالة واحدة","ما بدأ بحرف","الحرف دائمًا","ما تغير آخره بتغير موقعه"],"a":3,"e":"الاسم المعرب يتغير آخره."},{"q":"خبر (أنشأ) أحد أفعال الشروع يأتي:","o":["جملة فعلية فعلها مضارع بلا أن","اسمًا مفردًا","فعلًا ماضيًا","جملة اسمية"],"a":0,"e":"مثل: أنشأ الطالب يكتب."},{"q":"أسلوب الشرط يحتاج إلى:","o":["تمييز","فعل الشرط وجوابه","حال","مفعول مطلق"],"a":1,"e":"مثل: إنْ تجتهدْ تنجحْ."},{"q":"جواب الشرط يُقرن بالفاء إذا كان:","o":["مثنى","جملة اسمية","مضارعًا مجزومًا","ماضيًا متصرفًا"],"a":1,"e":"مثل: من يجتهد فله الجائزة."},{"q":"«ما» في (ما أجمل السماء) نوعها:","o":["استفهامية","موصولة","نافية","تعجبية"],"a":3,"e":"للتعجب."},{"q":"المفعول لأجله هو:","o":["نعت","مصدر قلبي يذكر علة الفعل ويشاركه في الزمن والفاعل","حال","تمييز"],"a":1,"e":"مثل: وقفت احترامًا للمعلم."},{"q":"إعراب (أسدًا) في: رأيت أسدًا في الحديقة:","o":["خبر","مضاف إليه","فاعل","مفعول به منصوب"],"a":3,"e":"وقع عليه فعل الرؤية."},{"q":"التشبيه الذي حُذف فيه وجه الشبه والأداة:","o":["مرسل","بليغ","مجمل فقط","مؤكد"],"a":1,"e":"مثل: العلم نور."},{"q":"الاستعارة التصريحية يُذكر فيها:","o":["المشبه والمشبه به","الأداة فقط","المشبه به وحده","المشبه وحده"],"a":2,"e":"يصرَّح بالمشبه به."},{"q":"الاستعارة المكنية يحذف فيها:","o":["الأداة والوجه معًا","المشبه به ويبقى شيء من لوازمه","الفعل","المشبه"],"a":1,"e":"يُرمز للمشبه به بلازمة."},{"q":"المجاز المرسل علاقته:","o":["غير المشابهة","التضاد","المشابهة دائمًا","السببية فقط"],"a":0,"e":"مثل: السببية والجزئية والكلية."},{"q":"الجناس التام هو ما اتفق فيه اللفظان في:","o":["الوزن فقط","نوع الحروف وعددها وهيئتها وترتيبها","المعنى","الحرف الأخير فقط"],"a":1,"e":"ويختلفان في المعنى."},{"q":"حذف الفاعل والإتيان بنائبه يسمى:","o":["التوكيد","الحذف الصرفي","الاستثناء","البناء للمجهول"],"a":3,"e":"يُبنى الفعل للمجهول."},{"q":"قصر الصفة على الموصوف طريقه:","o":["الاستفهام","النداء","النفي والاستثناء","الشرط"],"a":2,"e":"ما شاعرٌ إلا أحمد."},{"q":"الخبر والإنشاء من علم:","o":["العروض","المعاني","البديع","البيان"],"a":1,"e":"هو من مباحث علم المعاني."},{"q":"التشبيه والاستعارة والكناية من علم:","o":["المعاني","البديع","البيان","النحو"],"a":2,"e":"علم البيان."},{"q":"الجناس والطباق والسجع من علم:","o":["البيان","المعاني","الصرف","البديع"],"a":3,"e":"علم البديع."},{"q":"لقب بـ(أمير الشعراء) في الشعر الحديث:","o":["البارودي","الجارم","حافظ إبراهيم","أحمد شوقي"],"a":3,"e":"بويع بإمارة الشعر."},{"q":"رائد مدرسة الإحياء في الشعر الحديث:","o":["محمود سامي البارودي","جبران","أحمد شوقي","العقاد"],"a":0,"e":"رائد البعث والإحياء."},{"q":"من شعراء مدرسة الديوان:","o":["شوقي","الجارم","البارودي","العقاد"],"a":3,"e":"مع المازني وعبد الرحمن شكري."},{"q":"من شعراء المهجر:","o":["المتنبي","البحتري","أبو تمام","جبران خليل جبران"],"a":3,"e":"شاعر مهجري ورابطة القلم."},{"q":"من أعلام النثر العباسي:","o":["الخنساء","عنترة","امرؤ القيس","الجاحظ"],"a":3,"e":"أديب العصر العباسي."},{"q":"صاحب «المقدمة» في فلسفة التاريخ والاجتماع:","o":["الجاحظ","الحريري","ابن خلدون","المعري"],"a":2,"e":"مؤسس علم الاجتماع."},{"q":"أبو العلاء المعري يلقب بـ:","o":["فارس بني عبس","شاعر النيل","أمير الشعراء","رهين المحبسين"],"a":3,"e":"العمى وملازمة بيته."},{"q":"من شعراء العصر الأموي:","o":["امرؤ القيس","عنترة","طرفة","جرير"],"a":3,"e":"اشتهر في النقائض."},{"q":"النقائض شعر تقابل فيه قصيدة قصيدة أخرى بين:","o":["امرئ القيس وطرفة","جرير والفرزدق","المتنبي وأبي تمام","شوقي وحافظ"],"a":1,"e":"اشتهرت في العصر الأموي."},{"q":"المديح النبوي من أبرز شعرائه:","o":["البوصيري","جرير","المتنبي","أبو نواس"],"a":0,"e":"صاحب البردة."},{"q":"المقامات أسلوبها:","o":["المسرح","الرواية الحديثة","الشعر الحر","النثر المسجوع"],"a":3,"e":"تقوم على السجع والحكايات."},{"q":"من أغراض الشعر الجاهلي:","o":["الشعر المرسل","القصة القصيرة","الفخر","الشعر الحر"],"a":2,"e":"فخر وحماسة ورثاء ووصف."}],"qu":[{"q":"أكمل الآية الكريمة: ﴿فَاذْكُرُونِي أَذْكُرْكُمْ وَاشْكُرُوا لِي وَلَا ...﴾","o":["تَنْسَوْنِ","تَكْفُرُونِ","تُشْرِكُونِ","تَجْحَدُونِ"],"a":1,"e":"سورة البقرة، الآية 152."},{"q":"أكمل الآية الكريمة: ﴿يَا أَيُّهَا الَّذِينَ آمَنُوا اسْتَعِينُوا بِالصَّبْرِ وَالصَّلَاةِ ۚ إِنَّ اللَّهَ مَعَ ...﴾","o":["الْمُؤْمِنِينَ","الْمُحْسِنِينَ","الصَّابِرِينَ","الْمُتَّقِينَ"],"a":2,"e":"سورة البقرة، الآية 153."},{"q":"أكمل الآية الكريمة: ﴿مَّثَلُ الَّذِينَ يُنفِقُونَ أَمْوَالَهُمْ فِي سَبِيلِ اللَّهِ كَمَثَلِ حَبَّةٍ أَنبَتَتْ ...﴾","o":["سَبْعَ سَنَابِلَ","عَشْرَ سَنَابِلَ","مِائَةَ حَبَّةٍ","سَبْعِينَ سُنْبُلَةً"],"a":0,"e":"سورة البقرة، الآية 261."},{"q":"أكمل الآية الكريمة: ﴿فَبِمَا رَحْمَةٍ مِّنَ اللَّهِ لِنتَ لَهُمْ ۖ وَلَوْ كُنتَ فَظًّا غَلِيظَ الْقَلْبِ ...﴾","o":["لَابْتَعَدُوا عَنْكَ","لَانفَضُّوا مِنْ حَوْلِكَ","لَانصَرَفُوا عَنْ دَعْوَتِكَ","لَتَفَرَّقُوا مِنْ حَوْلِكَ"],"a":1,"e":"سورة آل عمران، الآية 159."},{"q":"أكمل الآية الكريمة: ﴿كُلُّ نَفْسٍ ذَائِقَةُ ...﴾","o":["الْعَذَابِ","الْمَوْتِ","الْحَيَاةِ","الْبَلَاءِ"],"a":1,"e":"سورة آل عمران، الآية 185."},{"q":"أكمل الآية الكريمة: ﴿وَاعْبُدُوا اللَّهَ وَلَا تُشْرِكُوا بِهِ شَيْئًا ۖ وَبِالْوَالِدَيْنِ ...﴾","o":["بِرًّا","رَحْمَةً","إِحْسَانًا","طَاعَةً"],"a":2,"e":"سورة النساء، الآية 36."},{"q":"أكمل الآية الكريمة: ﴿وَإِذَا حُيِّيتُم بِتَحِيَّةٍ فَحَيُّوا بِأَحْسَنَ مِنْهَا أَوْ ...﴾","o":["اسْمَعُوهَا","رُدُّوهَا","اتْرُكُوهَا","قَابِلُوهَا"],"a":1,"e":"سورة النساء، الآية 86."},{"q":"أكمل الآية الكريمة: ﴿مَن قَتَلَ نَفْسًا بِغَيْرِ نَفْسٍ أَوْ فَسَادٍ فِي الْأَرْضِ فَكَأَنَّمَا قَتَلَ ...﴾","o":["الْبَشَرِيَّةَ كُلَّهَا","الْأَرْضَ جَمِيعًا","النَّاسَ جَمِيعًا","الْمُؤْمِنِينَ كُلَّهُمْ"],"a":2,"e":"سورة المائدة، الآية 32."},{"q":"أكمل الآية الكريمة: ﴿وَمَا مِن دَابَّةٍ فِي الْأَرْضِ وَلَا طَائِرٍ يَطِيرُ بِجَنَاحَيْهِ إِلَّا ...﴾","o":["أُمَّةٌ مِنْ جِنْسِكُمْ","خَلْقٌ مِثْلُكُمْ","أَرْزَاقٌ مِنْ رَبِّكُمْ","أُمَمٌ أَمْثَالُكُم"],"a":3,"e":"سورة الأنعام، الآية 38."},{"q":"أكمل الآية الكريمة: ﴿وَلَا تُفْسِدُوا فِي الْأَرْضِ بَعْدَ ...﴾","o":["إِصْلَاحِهَا","نَشْأَتِهَا","عِمَارَتِهَا","خَرَابِهَا"],"a":0,"e":"سورة الأعراف، الآية 56."},{"q":"أكمل الآية الكريمة: ﴿وَقُلِ اعْمَلُوا فَسَيَرَى اللَّهُ ...﴾","o":["عَمَلَكُمْ وَالْمُؤْمِنُونَ وَرَسُولُهُ","سَعْيَكُمْ وَرَسُولُهُ وَالْمُؤْمِنُونَ","عَمَلَكُمْ وَرَسُولُهُ وَالْمُؤْمِنُونَ","عَمَلَكُمْ وَمَلَائِكَتُهُ وَالْمُؤْمِنُونَ"],"a":2,"e":"سورة التوبة، الآية 105."},{"q":"أكمل الآية الكريمة: ﴿لِّلَّذِينَ أَحْسَنُوا الْحُسْنَىٰ ...﴾","o":["وَجَنَّةٌ","وَنِعْمَةٌ","وَزِيَادَةٌ","وَمَغْفِرَةٌ"],"a":2,"e":"سورة يونس، الآية 26."},{"q":"أكمل الآية الكريمة: ﴿وَمَا تَوْفِيقِي إِلَّا بِاللَّهِ ۚ عَلَيْهِ تَوَكَّلْتُ وَإِلَيْهِ ...﴾","o":["أَرْجِعُ","أَتَوَجَّهُ","أَلْجَأُ","أُنِيبُ"],"a":3,"e":"سورة هود، الآية 88."},{"q":"أكمل الآية الكريمة: ﴿وَلَا تَيْأَسُوا مِن رَّوْحِ اللَّهِ ۖ إِنَّهُ لَا يَيْأَسُ مِن رَّوْحِ اللَّهِ إِلَّا ...﴾","o":["الْقَوْمُ الظَّالِمُونَ","الْقَوْمُ الْكَافِرُونَ","الْقَوْمُ الْفَاسِقُونَ","الْمُجْرِمُونَ"],"a":1,"e":"سورة يوسف، الآية 87."},{"q":"أكمل الآية الكريمة: ﴿إِنَّ اللَّهَ لَا يُغَيِّرُ مَا بِقَوْمٍ حَتَّىٰ يُغَيِّرُوا ...﴾","o":["مَا بِأَعْمَالِهِمْ","أَحْوَالَهُمْ","مَا فِي قُلُوبِهِمْ","مَا بِأَنفُسِهِمْ"],"a":3,"e":"سورة الرعد، الآية 11."},{"q":"أكمل الآية الكريمة: ﴿وَقُلْ جَاءَ الْحَقُّ وَزَهَقَ الْبَاطِلُ ۚ إِنَّ الْبَاطِلَ كَانَ ...﴾","o":["زَهُوقًا","هَالِكًا","مَغْلُوبًا","ضَعِيفًا"],"a":0,"e":"سورة الإسراء، الآية 81."},{"q":"أكمل الآية الكريمة: ﴿رَبَّنَا آتِنَا مِن لَّدُنكَ رَحْمَةً وَهَيِّئْ لَنَا مِنْ أَمْرِنَا ...﴾","o":["رَشَدًا","هُدًى","يُسْرًا","خَيْرًا"],"a":0,"e":"سورة الكهف، الآية 10."},{"q":"أكمل الآية الكريمة: ﴿رَبَّنَا هَبْ لَنَا مِنْ أَزْوَاجِنَا وَذُرِّيَّاتِنَا ...﴾","o":["سَكِينَةً وَهُدًى","صَلَاحًا وَتَقْوَى","رَحْمَةً وَمَغْفِرَةً","قُرَّةَ أَعْيُنٍ"],"a":3,"e":"سورة الفرقان، الآية 74."},{"q":"أكمل الآية الكريمة: ﴿رَبِّ هَبْ لِي حُكْمًا وَأَلْحِقْنِي ...﴾","o":["بِالْأَنْبِيَاءِ","بِالْمُتَّقِينَ","بِالْمُحْسِنِينَ","بِالصَّالِحِينَ"],"a":3,"e":"سورة الشعراء، الآية 83."},{"q":"أكمل الآية الكريمة: ﴿قَالَتْ نَمْلَةٌ يَا أَيُّهَا النَّمْلُ ادْخُلُوا مَسَاكِنَكُمْ لَا يَحْطِمَنَّكُمْ سُلَيْمَانُ وَجُنُودُهُ وَهُمْ ...﴾","o":["لَا يَعْلَمُونَ","لَا يَشْعُرُونَ","لَا يَسْمَعُونَ","لَا يُبْصِرُونَ"],"a":1,"e":"سورة النمل، الآية 18."},{"q":"أكمل الآية الكريمة: ﴿مَّا كَانَ مُحَمَّدٌ أَبَا أَحَدٍ مِّن رِّجَالِكُمْ وَلَٰكِن رَّسُولَ اللَّهِ ...﴾","o":["وَسَيِّدَ الْخَلْقِ","وَخَاتَمَ النَّبِيِّينَ","وَإِمَامَ الْمُرْسَلِينَ","وَآخِرَ الرُّسُلِ"],"a":1,"e":"سورة الأحزاب، الآية 40."},{"q":"أكمل الآية الكريمة: ﴿رَبِّ هَبْ لِي مِنَ ...﴾","o":["الْمُحْسِنِينَ","الذُّرِّيَّةِ","الصَّالِحِينَ","الْمُتَّقِينَ"],"a":2,"e":"سورة الصافات، الآية 100."},{"q":"أكمل الآية الكريمة: ﴿رَبَّنَا اغْفِرْ لَنَا وَلِإِخْوَانِنَا الَّذِينَ سَبَقُونَا ...﴾","o":["بِالْعَمَلِ","بِالْإِحْسَانِ","بِالْإِيمَانِ","بِالصَّلَاحِ"],"a":2,"e":"سورة الحشر، الآية 10."},{"q":"أكمل الآية الكريمة: ﴿فَامْشُوا فِي مَنَاكِبِهَا وَكُلُوا مِن ...﴾","o":["رِّزْقِهِ ۖ وَإِلَيْهِ النُّشُورُ","طَيِّبَاتِهِ ۖ وَإِلَيْهِ النُّشُورُ","فَضْلِهِ ۖ وَإِلَيْهِ النُّشُورُ","رِّزْقِهِ ۖ وَإِلَيْهِ الْمَصِيرُ"],"a":0,"e":"سورة الملك، الآية 15."},{"q":"أكمل الآية الكريمة: ﴿ن ۚ وَالْقَلَمِ وَمَا ...﴾","o":["يَكْتُبُونَ","يَسْطُرُونَ","يَقُولُونَ","يَرْسُمُونَ"],"a":1,"e":"سورة القلم، الآية 1."},{"q":"أكمل الآية الكريمة: ﴿فَإِذَا نُفِخَ فِي الصُّورِ نَفْخَةٌ ...﴾","o":["عَظِيمَةٌ","وَاحِدَةٌ","أُولَىٰ","ثَانِيَةٌ"],"a":1,"e":"سورة الحاقة، الآية 13."},{"q":"أكمل الآية الكريمة: ﴿قَدْ سَمِعَ اللَّهُ قَوْلَ الَّتِي تُجَادِلُكَ فِي ...﴾","o":["زَوْجِهَا","أَمْرِهَا","حَقِّهَا","شَأْنِهَا"],"a":0,"e":"سورة المجادلة، الآية 1."},{"q":"أكمل الآية الكريمة: ﴿مَنْ عَمِلَ صَالِحًا مِّن ذَكَرٍ أَوْ أُنثَىٰ وَهُوَ مُؤْمِنٌ فَلَنُحْيِيَنَّهُ ...﴾","o":["حَيَاةً سَعِيدَةً","حَيَاةً هَنِيئَةً","حَيَاةً طَيِّبَةً","حَيَاةً كَرِيمَةً"],"a":2,"e":"سورة النحل، الآية 97."},{"q":"أكمل الآية الكريمة: ﴿رَبِّ اجْعَلْنِي مُقِيمَ الصَّلَاةِ وَمِن ذُرِّيَّتِي رَبَّنَا وَتَقَبَّلْ ...﴾","o":["دُعَاءِ","صَلَاتِي","عَمَلِي","طَاعَتِي"],"a":0,"e":"سورة إبراهيم، الآية 40."},{"q":"اذكر اسم السورة التي وردت فيها الآية: ﴿إِنَّ اللَّهَ وَمَلَائِكَتَهُ يُصَلُّونَ عَلَى النَّبِيِّ﴾","o":["الفتح","الحجرات","النور","الأحزاب"],"a":3,"e":"الأحزاب: الآية 56."},{"q":"اذكر اسم السورة التي وردت فيها الآية: ﴿وَلَقَدْ كَرَّمْنَا بَنِي آدَمَ﴾","o":["الإسراء","الأعراف","النحل","الحجر"],"a":0,"e":"الإسراء: الآية 70."},{"q":"اذكر اسم السورة التي وردت فيها الآية: ﴿قُلْ إِنَّمَا أَنَا بَشَرٌ مِّثْلُكُمْ يُوحَىٰ إِلَيَّ أَنَّمَا إِلَٰهُكُمْ إِلَٰهٌ وَاحِدٌ﴾","o":["الإسراء","طه","الكهف","مريم"],"a":2,"e":"الكهف: الآية 110."},{"q":"اذكر اسم السورة التي وردت فيها الآية: ﴿سَيَجْعَلُ لَهُمُ الرَّحْمَٰنُ وُدًّا﴾","o":["طه","الكهف","الفرقان","مريم"],"a":3,"e":"مريم: الآية 96."},{"q":"اذكر اسم السورة التي وردت فيها الآية: ﴿وَمِنْ آيَاتِهِ خَلْقُ السَّمَاوَاتِ وَالْأَرْضِ وَاخْتِلَافُ أَلْسِنَتِكُمْ وَأَلْوَانِكُمْ﴾","o":["الجاثية","الشورى","النحل","الروم"],"a":3,"e":"الروم: الآية 22."},{"q":"اذكر اسم السورة التي وردت فيها الآية: ﴿يَا أَيُّهَا الَّذِينَ آمَنُوا اتَّقُوا اللَّهَ وَلْتَنظُرْ نَفْسٌ مَّا قَدَّمَتْ لِغَدٍ﴾","o":["الجمعة","الحديد","الحشر","المجادلة"],"a":2,"e":"الحشر: الآية 18."},{"q":"اذكر اسم السورة التي وردت فيها الآية: ﴿وَأَقِمِ الصَّلَاةَ طَرَفَيِ النَّهَارِ وَزُلَفًا مِّنَ اللَّيْلِ﴾","o":["يونس","الإسراء","طه","هود"],"a":3,"e":"هود: الآية 114."},{"q":"اذكر اسم السورة التي وردت فيها الآية: ﴿قَدْ جَاءَتْكُم مَّوْعِظَةٌ مِّن رَّبِّكُمْ وَشِفَاءٌ لِّمَا فِي الصُّدُورِ﴾","o":["يوسف","الإسراء","هود","يونس"],"a":3,"e":"يونس: الآية 57."},{"q":"اذكر اسم السورة التي وردت فيها الآية: ﴿لَقَدْ جَاءَكُمْ رَسُولٌ مِّنْ أَنفُسِكُمْ عَزِيزٌ عَلَيْهِ مَا عَنِتُّمْ﴾","o":["آل عمران","الأنفال","النساء","التوبة"],"a":3,"e":"التوبة: الآية 128."},{"q":"اذكر اسم السورة التي وردت فيها الآية: ﴿وَاعْبُدْ رَبَّكَ حَتَّىٰ يَأْتِيَكَ الْيَقِينُ﴾","o":["النحل","الرعد","الحجر","إبراهيم"],"a":2,"e":"الحجر: الآية 99."},{"q":"اذكر اسم السورة التي وردت فيها الآية: ﴿وَقُل رَّبِّ زِدْنِي عِلْمًا﴾","o":["مريم","الكهف","طه","الأنبياء"],"a":2,"e":"طه: الآية 114."},{"q":"اذكر اسم السورة التي وردت فيها الآية: ﴿قَالَ يَا أَيُّهَا الْمَلَأُ أَيُّكُمْ يَأْتِينِي بِعَرْشِهَا﴾","o":["النمل","القصص","الشعراء","سبأ"],"a":0,"e":"النمل: الآية 38."},{"q":"اذكر اسم السورة التي وردت فيها الآية: ﴿وَقَالَ إِنِّي ذَاهِبٌ إِلَىٰ رَبِّي سَيَهْدِينِ﴾","o":["الصافات","هود","يوسف","الأنبياء"],"a":0,"e":"الصافات: الآية 99."},{"q":"اذكر اسم السورة التي وردت فيها الآية: ﴿سُبْحَانَ رَبِّكَ رَبِّ الْعِزَّةِ عَمَّا يَصِفُونَ﴾","o":["المؤمنون","الزخرف","الأنبياء","الصافات"],"a":3,"e":"الصافات: الآية 180."},{"q":"اذكر اسم السورة التي وردت فيها الآية: ﴿كُتِبَ عَلَيْكُمُ الصِّيَامُ كَمَا كُتِبَ عَلَى الَّذِينَ مِن قَبْلِكُمْ﴾","o":["النساء","المائدة","آل عمران","البقرة"],"a":3,"e":"البقرة: الآية 183."},{"q":"اذكر اسم السورة التي وردت فيها الآية: ﴿الْيَوْمَ أَكْمَلْتُ لَكُمْ دِينَكُمْ وَأَتْمَمْتُ عَلَيْكُمْ نِعْمَتِي﴾","o":["الأنعام","الأعراف","المائدة","النساء"],"a":2,"e":"المائدة: الآية 3."},{"q":"اذكر اسم السورة التي وردت فيها الآية: ﴿لَّا تُدْرِكُهُ الْأَبْصَارُ وَهُوَ يُدْرِكُ الْأَبْصَارَ﴾","o":["الرعد","الأنعام","هود","الأعراف"],"a":1,"e":"الأنعام: الآية 103."},{"q":"اذكر اسم السورة التي وردت فيها الآية: ﴿يَا بَنِي آدَمَ خُذُوا زِينَتَكُمْ عِندَ كُلِّ مَسْجِدٍ﴾","o":["التوبة","الأنفال","الأعراف","الأنعام"],"a":2,"e":"الأعراف: الآية 31."},{"q":"اذكر اسم السورة التي وردت فيها الآية: ﴿وَلَا تَنَازَعُوا فَتَفْشَلُوا وَتَذْهَبَ رِيحُكُمْ﴾","o":["التوبة","محمد","الأنفال","الأعراف"],"a":2,"e":"الأنفال: الآية 46."},{"q":"اذكر اسم السورة التي وردت فيها الآية: ﴿يَا أَيُّهَا الَّذِينَ آمَنُوا اتَّقُوا اللَّهَ وَكُونُوا مَعَ الصَّادِقِينَ﴾","o":["الأنفال","الأحزاب","التوبة","الحشر"],"a":2,"e":"التوبة: الآية 119."},{"q":"اذكر اسم السورة التي وردت فيها الآية: ﴿قَالَ لَا تَثْرِيبَ عَلَيْكُمُ الْيَوْمَ ۖ يَغْفِرُ اللَّهُ لَكُمْ﴾","o":["الحجر","هود","يوسف","الرعد"],"a":2,"e":"يوسف: الآية 92."},{"q":"اذكر اسم السورة التي وردت فيها الآية: ﴿وَلَا تَهِنُوا وَلَا تَحْزَنُوا وَأَنتُمُ الْأَعْلَوْنَ إِن كُنتُم مُّؤْمِنِينَ﴾","o":["المائدة","النساء","البقرة","آل عمران"],"a":3,"e":"آل عمران: الآية 139."},{"q":"اذكر اسم السورة التي وردت فيها الآية: ﴿يَا أَيُّهَا النَّاسُ اتَّقُوا رَبَّكُمُ الَّذِي خَلَقَكُم مِّن نَّفْسٍ وَاحِدَةٍ﴾","o":["النساء","الأنعام","الأعراف","الحج"],"a":0,"e":"النساء: الآية 1."},{"q":"اذكر اسم السورة التي وردت فيها الآية: ﴿إِنَّ الصَّلَاةَ كَانَتْ عَلَى الْمُؤْمِنِينَ كِتَابًا مَّوْقُوتًا﴾","o":["النساء","المائدة","الأنفال","البقرة"],"a":0,"e":"النساء: الآية 103."},{"q":"اذكر اسم السورة التي وردت فيها الآية: ﴿وَأَنَّ هَٰذَا صِرَاطِي مُسْتَقِيمًا فَاتَّبِعُوهُ﴾","o":["هود","الحجر","الأنعام","الأعراف"],"a":2,"e":"الأنعام: الآية 153."},{"q":"اذكر اسم السورة التي وردت فيها الآية: ﴿وَاصْبِرْ نَفْسَكَ مَعَ الَّذِينَ يَدْعُونَ رَبَّهُم بِالْغَدَاةِ وَالْعَشِيِّ﴾","o":["الكهف","الإسراء","الأنعام","مريم"],"a":0,"e":"الكهف: الآية 28."},{"q":"اذكر اسم السورة التي وردت فيها الآية: ﴿فَلَمَّا كَلَّمَهُ قَالَ إِنَّكَ الْيَوْمَ لَدَيْنَا مَكِينٌ أَمِينٌ﴾","o":["يوسف","القصص","هود","طه"],"a":0,"e":"يوسف: الآية 54."}]}};
+
+const SECS=[
+ {id:'beh',name:'الجدارات السلوكية',short:'الجدارات',n:160,min:20,graded:false,lang:'ar',opts:5,
+  idea:'يقيس هذا المحور سماتك الشخصية كمعلم: التعاون، التعلم، الثقافة، العمل الفردي، أثر القرارات، النزاهة، الاتزان، والثقة. لا توجد درجات، لكن تُقارن إجاباتك بعضها ببعض للتأكد من ثبات مبادئك.',
+  tip:'أجب بصدق وبسرعة، فالوقت نحو 7 ثوانٍ للسؤال. ستتكرر الفكرة نفسها بصياغات مختلفة، فاختر ما يعبر عن شخصيتك الحقيقية ولا تحاول تخمين الإجابة المطلوبة.'},
+ {id:'ar',name:'اللغة العربية',short:'العربية',n:25,min:10,graded:true,lang:'ar',opts:4,
+  idea:'أسئلة عامة تناسب كل التخصصات: همزات الوصل والقطع، علامات الترقيم، الإعراب، الممنوع من الصرف، المضارع المبني والمعرب، والمصادر والمشتقات.',
+  tip:'25 سؤالًا في 10 دقائق، أي نحو 24 ثانية للسؤال. ابدأ بما تعرفه وضع علامة مراجعة على ما تتردد فيه.'},
+ {id:'en',name:'اللغة الإنجليزية',short:'الإنجليزية',n:25,min:10,graded:true,lang:'en',opts:4,
+  idea:'أزمنة الأفعال، الكلمة وعكسها، المفردات الشائعة، الجمع الشاذ، وحروف الجر الأساسية.',
+  tip:'25 سؤالًا في 10 دقائق. انتبه لدلالات الزمن مثل since وyesterday وLook!، فهي تحدد الزمن الصحيح.'},
+ {id:'pc',name:'الحاسب الآلي',short:'الحاسب',n:50,min:15,graded:true,lang:'ar',opts:4,
+  idea:'مفاهيم الحاسب الأساسية: وحدات الإدخال والإخراج، وحدات القياس، امتدادات الملفات، اختصارات لوحة المفاتيح، Word وExcel وPowerPoint، والإنترنت.',
+  tip:'50 سؤالًا في 15 دقيقة، أي نحو 18 ثانية للسؤال. معظم الأسئلة مباشرة، فلا تتوقف طويلًا عند أي سؤال.'},
+ {id:'gk',name:'المعلومات العامة',short:'المعلومات',n:30,min:10,graded:true,lang:'ar',opts:4,
+  idea:'ثقافة عامة عن مصر والعالم: المشروعات القومية، رؤية 2030، الاقتصاد والمصطلحات الحديثة، الجغرافيا، المناسبات، والشخصيات.',
+  tip:'30 سؤالًا في 10 دقائق، أي نحو 20 ثانية للسؤال. استبعد الاختيارات الخاطئة أولًا ثم اختر الأقرب.'},
+ {id:'ed',name:'المحور التربوي',short:'التربوي',n:50,min:15,graded:true,lang:'ar',opts:4,
+  idea:'مواقف تربوية داخل الفصل ونظريات التعلم والتقويم والإرشاد والفروق الفردية.',
+  tip:'50 سؤالًا في 15 دقيقة. في المواقف اختر التصرف الهادئ الذي يراعي الطالب ويعالج السبب ويلتزم باللوائح، وتجنب العقاب والإهمال.'}
+];
+let TOTAL_GRADED=SECS.filter(s=>s.graded).reduce((a,s)=>a+s.n,0);
+const PASS=0.8, REST_MS=30000;
+const LS_KEY='caoa-teacher-sim-v3-b';
+const LET_AR=['أ','ب','ج','د','هـ'], LET_EN=['A','B','C','D','E'];
+
+const ANALYSIS=[
+ ['الجدارات السلوكية',['أسئلة مباشرة بخيارات متدرجة عن حب الأسرة والأصدقاء، التعاون ومساعدة الزملاء، تدريب زميل جديد، سرعة الغضب، تقبل النقد.','مواقف الترقية مقابل التخلي عن المبادئ أو تجاوز اللوائح، والتوقيع على أوراق لا تقتنع بها.','أسئلة لوم النفس أو المجتمع أو الوالدين على ما أنت عليه، وأسئلة الإنجاز الفردي وتعدد المهام.','أسئلة «النتيجة المترتبة» الموقفية، مثل نتائج حرب أكتوبر أو فروق طرق التدريس بين المدارس.']],
+ ['اللغة العربية',['تركيز على الهمزات (وصل وقطع) وعلامات الترقيم.','إعراب جمل قصيرة: خالد، جامحًا، نجومها، وتصنيف الفعل: لن ترى.','الممنوع من الصرف، ونصب المضارع بـ(لن)، والمضارع المبني، وضبط (لا شكَّ).']],
+ ['اللغة الإنجليزية',['الأزمنة: المضارع التام المستمر، الماضي التام، المستقبل المستمر، الماضي البسيط (go - went).','الكلمة وعكسها: happy، thick، hot، rich، tall.','مفردات مصورة: trunk للفيل، sour لليمون، الموزة، القطة، مكان النوم، وجمع woman.']],
+ ['الحاسب الآلي',['اختصار الصفحة الفارغة في Word، والعبارة الخاطئة عن F4 وإغلاق الجهاز، وتعطل الماوس.','البيانات والمعلومات، وحدات الإدخال والإخراج، البت وأكبر وحدة تخزين، الامتداد القديم doc، ولوحة اللمس.']],
+ ['المعلومات العامة',['عام المرأة المصرية 2017، مفاعل الضبعة والتعاون مع روسيا، الأمن السيبراني، الملكية الفكرية.','البنك المركزي والشمول المالي، الكوميسا ورؤية مصر 2030، جبل الطونة بالمنيا، مشروعات الملك سلمان في مصر.','أسئلة صح وخطأ كثيرة وبنود عن القرى والمدن وأثر عادات الغرب على الشباب.']],
+ ['المحور التربوي',['نحو 30 سؤالًا مواقف: طالب مشاغب، انطوائي، خجول، شجار طالبين، تأخر تسليم التقييم.','نظريات: البنائية، ثورندايك وقانون الأثر، إريكسون، الذكاء الموسيقي، التقويم النهائي، مدة انتباه الطفل، أنواع الكذب، المرشد والمسترشد.']],
+ ['التخصص: اللغة العربية',['المعلقات وألقابها وأصحابها، شعراء الصعاليك، المخضرمون، الخنساء، النقائض، وبيت شعري ويُطلب غرضه.','نحو: إعراب أسدًا ولاعبين، خبر أنشأ، حروف الاستفهام، المفعول لأجله، علامات الجر.','صرف: تصغير ناجح، الخماسي بلا حذف، اسم الهيئة، اسم الفاعل والمفعول، زيادة (افتتح).','بلاغة: حذف وجه الشبه، طباق السلب، المحسنات اللفظية، علم المعاني، الكناية.','إملاء وترقيم: همزة مسؤول وقارئ، المد، علامات التنصيص والفاصلة المنقوطة، وإعراب (حبلى) وتصغير (ناجح) والنسب إلى المقصور.']],
+ ['التخصص: القرآن الكريم',['أسئلة «أكمل الآية الكريمة» و«اذكر اسم السورة» من سور: الجمعة والتغابن والبقرة وآل عمران والنساء والأنعام والأعراف والتوبة ويونس وهود ويوسف.','سور النصف الثاني: الملك والقلم والحاقة والنمل والشعراء والنحل والروم والإسراء والكهف ومريم وطه والفرقان والأحزاب والصافات والمجادلة والحشر.','آيات متشابهة يُسأل عنها: (قولوا آمنا بالله) في البقرة و(قل آمنا بالله) في آل عمران، و(هيهات هيهات لما توعدون) في المؤمنون.']]
+];
+
+/* ---------- الحالة ---------- */
+const ui={confirm:false,rev:'ar',filter:'all'};
+function fresh(){return {track:'ar',spIdx:null,name:'',phase:'intro',si:0,qi:0,ans:{},flag:{},endAt:0,restEnd:0,resume:false};}
+let S=fresh();
+const SPEC={
+ar:{id:'sp',name:'التخصص: اللغة العربية',short:'التخصص',n:50,min:20,graded:true,lang:'ar',opts:4,
+  idea:'أدب وشعر جاهلي ومعلقات وصعاليك ومخضرمون ونقائض، وبلاغة، ونحو، وصرف، وإملاء وعلامات ترقيم. جميع الأسئلة في اللغة العربية نفسها دون أسئلة إكمال الآيات.',
+  tip:'50 سؤالًا في 20 دقيقة، أي نحو 24 ثانية للسؤال. راجع في ذهنك المعلقات وأصحابها والأغراض الشعرية، ثم الإعراب والتصغير والنسب.'},
+qu:{id:'sp',name:'التخصص: القرآن الكريم',short:'التخصص',n:50,min:20,graded:true,lang:'ar',opts:4,
+  idea:'أسئلة إكمال الآية الكريمة، ومعرفة اسم السورة التي وردت فيها آية، من سور مثل: الجمعة والتغابن والبقرة وآل عمران والنساء والأنعام والأعراف والتوبة ويونس وهود ويوسف والرعد وإبراهيم والحجر والنحل والإسراء والكهف ومريم وطه والفرقان والشعراء والنمل والروم والأحزاب والصافات والمجادلة والحشر والملك والقلم والحاقة.',
+  tip:'50 سؤالًا في 20 دقيقة. ركّز على الآيات المتشابهة (قولوا آمنا / قل آمنا)، وعلى أواخر الآيات وفواصلها، وانتبه لحروف الجر والواو والفاء في الاختيارات.'}
+};
+const BANK=DATA.spBank;
+function setTrack(track,idx){
+  S.track=track;
+  SECS.length=6;
+  SECS.push(Object.assign({},SPEC[track]));
+  TOTAL_GRADED=SECS.filter(s=>s.graded).reduce((a,s)=>a+s.n,0);
+  if(idx&&idx.length===50)DATA.sp=idx.map(i=>BANK[track][i]).filter(Boolean);
+  else DATA.sp=BANK[track].slice(0,50);
+}
+function pickIdx(track){
+  const a=BANK[track].map((_,i)=>i);
+  for(let i=a.length-1;i>0;i--){const k=Math.floor(Math.random()*(i+1));[a[i],a[k]]=[a[k],a[i]]}
+  return a.slice(0,50);
+}
+
+function save(){try{localStorage.setItem(LS_KEY,JSON.stringify(S))}catch(e){}}
+function loadSaved(){try{const r=localStorage.getItem(LS_KEY);return r?JSON.parse(r):null}catch(e){return null}}
+function wipe(){try{localStorage.removeItem(LS_KEY)}catch(e){}}
+const $=s=>document.querySelector(s);
+const app=$('#app');setTrack('ar');
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function fmt(ms){const t=Math.ceil(ms/1000);const m=Math.floor(t/60),s=t%60;return String(m).padStart(2,'0')+':'+String(s).padStart(2,'0')}
+function toast(msg){const l=$('#layer');const d=document.createElement('div');d.className='toast';d.setAttribute('role','status');d.textContent=msg;l.appendChild(d);setTimeout(()=>d.remove(),4200)}
+const EMBLEM='<svg viewBox="0 0 48 48" width="40" height="40" aria-hidden="true"><circle cx="24" cy="24" r="22" fill="none" stroke="#D8A93F" stroke-width="2"/><path d="M24 9l2.7 7.6h7.6l-6.2 4.5 2.4 7.4L24 24l-6.5 4.5 2.4-7.4-6.2-4.5h7.6z" fill="#D8A93F"/><path d="M11 35c4.3-3.2 8.7-3.2 13 0 4.3-3.2 8.7-3.2 13 0v3.4c-4.3-3.2-8.7-3.2-13 0-4.3-3.2-8.7-3.2-13 0z" fill="#D8A93F"/></svg>';
+
+/* ---------- الشريط العلوي ---------- */
+function renderHeader(){
+  let hud='';
+  const sec=SECS[S.si];
+  if(S.phase==='exam'){
+    const answered=S.ans[sec.id].filter(x=>x>=0).length;
+    hud=`<div class="pill-sec">${esc(sec.name)}<br>المحور ${S.si+1} من ${SECS.length}</div><div class="clock" id="clock" aria-label="الوقت المتبقي">${fmt(Math.max(0,S.endAt-Date.now()))}</div>`;
+  }else if(S.phase==='rest'){
+    hud=`<div class="pill-sec">استراحة بين المحاور</div>`;
+  }
+  const pct=S.phase==='exam'?Math.round(S.ans[sec.id].filter(x=>x>=0).length/sec.n*100):(S.phase==='results'?100:0);
+  $('#top').innerHTML=`<div class="in"><div class="brand">${EMBLEM}<div><b>محاكي اختبار معلم مساعد – اللغة العربية</b><span>محاكاة لاختبار الجهاز المركزي للتنظيم والإدارة · نموذج تدريبي</span></div></div><div class="hud">${hud}<button class="tbtn" id="theme" aria-label="تبديل المظهر" title="تبديل المظهر"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v3M12 20v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M1 12h3M20 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg></button></div></div><div class="prog"><i id="progbar" style="width:${pct}%"></i></div>`;
+  $('#theme').onclick=()=>{const r=document.documentElement;const dark=r.dataset.theme==='dark'||(!r.dataset.theme&&matchMedia('(prefers-color-scheme: dark)').matches);r.dataset.theme=dark?'light':'dark'};
+}
+
+/* ---------- الصفحة الأولى ---------- */
+function renderIntro(){
+  const saved=loadSaved();
+  const canResume=saved&&saved.phase&&saved.phase!=='intro'&&saved.phase!=='results';
+  const totalQ=SECS.reduce((a,s)=>a+s.n,0), totalMin=SECS.reduce((a,s)=>a+s.min,0);
+  const rows=SECS.map((s,i)=>`<tr><td class="num">${i+1}</td><td class="w"><b>${esc(s.name)}</b></td><td class="num">${s.n}</td><td class="num">${s.min} د</td><td class="num">${s.opts}</td><td>${s.graded?'<span class="tag ok">بدرجات</span>':'<span class="tag gold">ملف سمات</span>'}</td></tr>`).join('');
+  const an=ANALYSIS.map(([t,l])=>`<h3>${esc(t)}</h3><ul>${l.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`).join('');
+  app.innerHTML=`<main class="in">
+  <section class="hero">
+    <p class="eyebrow">اختبار تدريبي · وظيفة معلم مساعد · اللغة العربية (أزهر)</p>
+    <h1>محاكي الاختبار الإلكتروني</h1>
+    <p>سبعة محاور بالترتيب نفسه والزمن نفسه، مع راحة 30 ثانية بين كل محور. الدرجات لا تظهر إلا بعد نهاية الاختبار كله، ونسبة الاجتياز 80%.</p>
+  </section>
+  <div class="grid2">
+    <section class="card">
+      <h2 style="font-size:1.1rem;margin-bottom:10px">هيكل الاختبار</h2>
+      <div class="tw"><table><thead><tr><th>#</th><th>المحور</th><th>الأسئلة</th><th>الزمن</th><th>الاختيارات</th><th>التقدير</th></tr></thead><tbody>${rows}</tbody>
+      <tfoot><tr><td></td><td><b>المجموع</b></td><td class="num"><b>${totalQ}</b></td><td class="num"><b>${totalMin} د</b></td><td></td><td></td></tr></tfoot></table></div>
+    </section>
+    <section class="card" style="display:grid;gap:14px;align-content:start">
+      <div class="field"><label>التخصص</label><div class="trk" role="radiogroup" aria-label="التخصص"><label class="trk-o${S.track==='ar'?' on':''}"><input type="radio" name="trk" value="ar"${S.track==='ar'?' checked':''}><span>لغة عربية</span></label><label class="trk-o${S.track==='qu'?' on':''}"><input type="radio" name="trk" value="qu"${S.track==='qu'?' checked':''}><span>قرآن كريم</span></label></div></div>
+      <div class="field"><label for="nm">اسم المتقدم</label><input id="nm" type="text" maxlength="60" autocomplete="name" placeholder="اكتب اسمك" value="${esc(S.name)}"></div>
+      <ul class="rules">
+        <li>نسبة الاجتياز <b>80%</b> من مجموع أسئلة المحاور المُدرَّجة (${TOTAL_GRADED} سؤالًا).</li>
+        <li>الجدارات السلوكية بلا درجات؛ تظهر لك سماتك وثبات إجاباتك ومدى ملاءمتك للوظيفة.</li>
+        <li>الدرجات والإجابات الصحيحة تظهر بعد نهاية الاختبار فقط.</li>
+        <li>يمكنك التنقل ووضع علامة مراجعة داخل المحور، ولا يمكن الرجوع لمحور بعد إنهائه.</li>
+        <li>ينتهي المحور تلقائيًا عند انتهاء وقته.</li>
+      </ul>
+      <div class="subbox"><b>${unlocked?'الاشتراك مفعّل ✓':'فترة تجريبية '+TRIAL_SEC+' ثانية، ثم كلمة سر'}</b>${unlocked?'':`<span>قيمة الاشتراك ${SUB_PRICE} جنيهًا. بعد الاشتراك تحصل على كلمة السر لفتح الاختبار كاملًا.</span><a class="btn ghost" href="${waLink()}" target="_blank" rel="noopener">تواصل واتساب للاشتراك</a>`}</div>
+      <div class="row">
+        <button class="btn" id="start">ابدأ الاختبار</button>
+        ${canResume?'<button class="btn ghost" id="resume">استئناف الاختبار السابق</button>':''}
+      </div>
+    </section>
+  </div>
+  <details class="an"><summary>تحليل النص: أنماط الأسئلة المتكررة في تسريبات الطلاب</summary><div class="an-body">${an}<p class="disc">التحليل مبني على ما كتبه الطلاب من ذاكرتهم عن اختبارات 21 إلى 24 أكتوبر، وقد يختلف من نموذج لآخر. الأسئلة هنا محاكية لأنماطها وليست نسخًا من الاختبار الحقيقي.</p></div></details>
+  </main>`;
+  $('#nm').oninput=e=>{S.name=e.target.value.trim()};
+  document.querySelectorAll('input[name=trk]').forEach(r=>r.onchange=e=>{setTrack(e.target.value);renderIntro()});
+  $('#start').onclick=()=>{if(trialBlocked()){showLock();return}const tr=S.track,ix=pickIdx(tr);S=Object.assign(fresh(),{name:S.name,track:tr,spIdx:ix,phase:'rest',si:0,restEnd:Date.now()+REST_MS});setTrack(tr,ix);save();render();window.scrollTo(0,0)};
+  if(canResume)$('#resume').onclick=()=>{if(trialBlocked()){showLock();return}S=saved;setTrack(S.track||'ar',S.spIdx);render();window.scrollTo(0,0)};
+}
+
+/* ---------- الراحة ---------- */
+function renderRest(){
+  const sec=SECS[S.si];
+  const left=Math.ceil(Math.max(0,S.restEnd-Date.now())/1000);
+  const steps=SECS.map((s,i)=>`<i class="${i<S.si?'done':i===S.si?'cur':''}" title="${esc(s.name)}"></i>`).join('');
+  app.innerHTML=`<main class="in rest"><section class="card restcard">
+    <p class="eyebrow">${S.si===0?'استعد لبدء الاختبار':'راحة 30 ثانية'} · المحور ${S.si+1} من ${SECS.length}</p>
+    <h1>${esc(sec.name)}</h1>
+    <div class="count" id="restc" aria-live="off">${left}</div>
+    <div class="facts"><div><b>${sec.n}</b><span>سؤالًا</span></div><div><b>${sec.min}</b><span>دقيقة</span></div><div><b>${sec.opts}</b><span>اختيارات</span></div></div>
+    <p style="text-align:start;width:100%"><b>فكرة المحور:</b> ${esc(sec.idea)}</p>
+    <div class="tip"><b>نصيحة:</b> ${esc(sec.tip)}</div>
+    <div class="steps" aria-hidden="true">${steps}</div>
+    <button class="btn" id="skip">تخطي والبدء الآن</button>
+  </section></main>`;
+  $('#skip').onclick=beginSection;
+}
+
+/* ---------- الأسئلة ---------- */
+function beginSection(){
+  const sec=SECS[S.si];
+  if(!S.ans[sec.id])S.ans[sec.id]=Array(sec.n).fill(-1);
+  if(!S.flag[sec.id])S.flag[sec.id]={};
+  S.phase='exam';S.qi=0;S.endAt=Date.now()+sec.min*60000;ui.confirm=false;
+  save();render();window.scrollTo(0,0);
+}
+function renderExam(){
+  const sec=SECS[S.si],qs=DATA[sec.id],i=S.qi,q=qs[i],isB=sec.id==='beh';
+  const opts=isB?DATA.scales[q.s]:q.o;
+  const L=sec.lang==='en'?LET_EN:LET_AR;
+  const cur=S.ans[sec.id][i];
+  const dir=sec.lang==='en'?'ltr':'rtl';
+  const text=isB?q.t:q.q;
+  const olist=opts.map((o,k)=>`<label class="opt${cur===k?' sel':''}"><input type="radio" name="o" value="${k}"${cur===k?' checked':''}><span class="chip">${L[k]}</span><span class="otxt">${esc(o)}</span></label>`).join('');
+  const flagged=!!S.flag[sec.id][i];
+  const last=i===sec.n-1;
+  app.innerHTML=`<main class="in exam">
+   <section class="card qcard">
+     <div class="qhead"><div><b>${esc(sec.name)}</b> <span class="qnum">· سؤال ${i+1} من ${sec.n}</span></div>
+       <button class="flagbtn${flagged?' on':''}" id="flag" aria-pressed="${flagged}">${flagged?'تمت العلامة للمراجعة':'علامة للمراجعة'}</button></div>
+     <div class="qbody" dir="${dir}"><p class="qtext">${esc(text)}</p><div class="opts" role="radiogroup">${olist}</div></div>
+     <div class="qfoot"><button class="btn ghost" id="prev"${i===0?' disabled':''}>السابق</button>
+       ${last?'<button class="btn" id="end">مراجعة وإنهاء المحور</button>':'<button class="btn" id="next">التالي</button>'}</div>
+   </section>
+   <aside class="card map"><div class="maphead"><b>خريطة الأسئلة</b><span class="qnum" id="mcount"></span></div>
+     <div class="mgrid" id="mgrid"></div>
+     <div class="legend"><span><i class="a"></i>تمت الإجابة</span><span><i class="f"></i>للمراجعة</span><span><i></i>بلا إجابة</span></div>
+     <button class="btn danger" id="finish" style="width:100%">إنهاء المحور</button></aside>
+  </main>`;
+  drawMap();
+  document.querySelectorAll('.opt input').forEach(inp=>inp.addEventListener('change',()=>setAnswer(+inp.value)));
+  $('#prev').onclick=()=>goTo(i-1);
+  if(last)$('#end').onclick=openConfirm;else $('#next').onclick=()=>goTo(i+1);
+  $('#finish').onclick=openConfirm;
+  $('#flag').onclick=()=>{const f=S.flag[sec.id];if(f[i])delete f[i];else f[i]=1;save();renderExam()};
+  renderHeader();
+}
+function drawMap(){
+  const sec=SECS[S.si],a=S.ans[sec.id],f=S.flag[sec.id];
+  $('#mgrid').innerHTML=a.map((v,k)=>`<button class="mb${v>=0?' ans':''}${f[k]?' flag':''}${k===S.qi?' cur':''}" data-k="${k}" aria-label="سؤال ${k+1}${v>=0?' (تمت الإجابة)':''}">${k+1}</button>`).join('');
+  $('#mgrid').onclick=e=>{const b=e.target.closest('.mb');if(b)goTo(+b.dataset.k)};
+  $('#mcount').textContent=a.filter(x=>x>=0).length+' / '+sec.n;
+  const cur=$('#mgrid .cur');if(cur&&cur.scrollIntoView)cur.scrollIntoView({block:'nearest'});
+}
+function goTo(k){const sec=SECS[S.si];if(k<0||k>=sec.n)return;S.qi=k;save();renderExam()}
+function setAnswer(v){
+  const sec=SECS[S.si];const i=S.qi;
+  S.ans[sec.id][i]=v;save();
+  document.querySelectorAll('.opt').forEach((el,k)=>el.classList.toggle('sel',k===v));
+  drawMap();
+  const pb=$('#progbar');if(pb)pb.style.width=Math.round(S.ans[sec.id].filter(x=>x>=0).length/sec.n*100)+'%';
+  if(sec.id==='beh'&&i<sec.n-1)setTimeout(()=>{if(S.phase==='exam'&&S.si===SECS.indexOf(sec)&&S.qi===i)goTo(i+1)},260);
+}
+function openConfirm(){
+  const sec=SECS[S.si],a=S.ans[sec.id];
+  const un=a.filter(x=>x<0).length,fl=Object.keys(S.flag[sec.id]).length;
+  const last=S.si===SECS.length-1;
+  $('#layer').innerHTML=`<div class="modal" role="dialog" aria-modal="true" aria-labelledby="mt"><div class="card">
+    <h2 id="mt" style="font-size:1.15rem">إنهاء محور ${esc(sec.name)}؟</h2>
+    <p>${un?`لديك <b>${un}</b> سؤالًا بلا إجابة. `:'أجبت عن كل الأسئلة. '}${fl?`وعندك <b>${fl}</b> سؤالًا عليه علامة مراجعة. `:''}لن تستطيع العودة إلى هذا المحور بعد الإنهاء.</p>
+    <div class="row"><button class="btn danger" id="yes">${last?'إنهاء الاختبار وعرض النتيجة':'إنهاء والانتقال للراحة'}</button><button class="btn ghost" id="no">العودة للأسئلة</button></div></div></div>`;
+  $('#no').onclick=()=>{$('#layer').innerHTML=''};
+  $('#yes').onclick=()=>{$('#layer').innerHTML='';finishSection(false)};
+  $('#no').focus();
+}
+function finishSection(auto){
+  $('#layer').querySelectorAll('.modal').forEach(m=>m.remove());
+  if(S.si>=SECS.length-1){S.phase='results';ui.rev='ar';ui.filter='all';}
+  else{S.si++;S.phase='rest';S.restEnd=Date.now()+REST_MS;}
+  save();render();window.scrollTo(0,0);
+  if(auto)toast('انتهى وقت المحور وتم تسليم إجاباتك تلقائيًا.');
+}
+
+/* ---------- التصحيح ---------- */
+function gradeAll(){
+  return SECS.filter(s=>s.graded).map(s=>{
+    const a=S.ans[s.id]||Array(s.n).fill(-1),qs=DATA[s.id];
+    let c=0,w=0,u=0;
+    qs.forEach((q,i)=>{if(a[i]<0)u++;else if(a[i]===q.a)c++;else w++;});
+    return {sec:s,c,w,u,pct:c/s.n};
+  });
+}
+const ADVICE={
+ coop:'تدرّب على مشاركة الزملاء المعلومات وعلى قبول العمل الجماعي وتدريب الجدد.',
+ learn:'اجعل لنفسك وقتًا ثابتًا للقراءة والتدريب ومتابعة الجديد في التدريس.',
+ cult:'تمرّن على الإنصات للرأي المخالف واحترام اختلاف العادات والثقافات.',
+ solo:'ابدأ بالمبادرة في المهام الصغيرة ونظّم وقتك بنفسك دون انتظار التذكير.',
+ resp:'تحمّل نتائج قراراتك، واعترف بالخطأ، وأبلغ مديرك بتأخرك مبكرًا بدل إخفائه.',
+ integ:'تمسّك بالمبادئ واللوائح مهما كان المقابل، فهذه السمة حاسمة في الوظائف الحكومية.',
+ emo:'درّب نفسك على الهدوء عند الغضب والضغط، وخذ نفسًا قبل الرد.',
+ conf:'تدرّب على التعبير عن رأيك بثقة وأدب، واعتبر النقد البنّاء فرصة للتحسن.'
+};
+function analyzeBeh(){
+  const a=S.ans.beh||Array(160).fill(-1),qs=DATA.beh;
+  const val=qs.map((q,i)=>{const x=a[i];if(x<0)return null;let v=5-x;if(q.r)v=6-v;return v});
+  const answered=val.filter(v=>v!==null).length;
+  const traits=DATA.traits.map(t=>{
+    const vs=qs.map((q,i)=>q.tr===t.id?val[i]:null).filter(v=>v!==null);
+    const m=vs.length?vs.reduce((x,y)=>x+y,0)/vs.length:0;
+    const score=vs.length?Math.round((m-1)/4*100):0;
+    const level=score>=80?['مرتفع','ok']:score>=65?['مناسب','ok']:score>=50?['يحتاج تنمية','warn']:['غير مناسب','bad'];
+    return Object.assign({},t,{score,level,count:vs.length});
+  });
+  const byPair={};qs.forEach((q,i)=>{(byPair[q.p]=byPair[q.p]||[]).push(val[i])});
+  let sum=0,cnt=0,incon=0;
+  Object.values(byPair).forEach(p=>{if(p[0]!==null&&p[1]!==null){const d=Math.abs(p[0]-p[1]);sum+=d;cnt++;if(d>=3)incon++;}});
+  const consistency=cnt?Math.round(100-(sum/cnt)/4*100):0;
+  const avg=Math.round(traits.reduce((x,t)=>x+t.score,0)/traits.length);
+  const minT=Math.min(...traits.map(t=>t.score));
+  const integ=traits.find(t=>t.id==='integ').score;
+  let verdict;
+  if(answered<128)verdict=['تقرير غير مكتمل','warn','أجبت عن '+answered+' من 160 عبارة فقط، ولا يمكن الحكم على ملاءمتك بدقة. أجب عن معظم العبارات في المحاولة القادمة.'];
+  else if(consistency<65)verdict=['نتيجة غير موثوقة','bad','ظهر تناقض واضح بين إجاباتك على العبارات المتشابهة. ثبات الإجابات علامة على صدقك، فأجب عن كل عبارة وفق مبدئك الحقيقي.'];
+  else if(minT<50||integ<60)verdict=['غير مناسب للوظيفة بصورة حالية','bad','هناك سمة أو أكثر دون الحد المطلوب. راجع السمات المنخفضة أدناه وتدرّب عليها.'];
+  else if(avg>=70&&minT>=60)verdict=['مناسب للوظيفة','ok','سماتك متوازنة وثابتة، وهذا يناسب طبيعة عمل المعلم.'];
+  else verdict=['مناسب بتحفظ','warn','سماتك مقبولة عمومًا، لكن بعضها يحتاج تنمية حتى تصل لمستوى أعلى.'];
+  return {answered,traits,consistency,incon,pairs:cnt,avg,verdict};
+}
+
+/* ---------- النتائج ---------- */
+function renderResults(){
+  const g=gradeAll();
+  const correct=g.reduce((x,r)=>x+r.c,0);
+  const overall=correct/TOTAL_GRADED;
+  const pass=overall>=PASS;
+  const b=analyzeBeh();
+  const name=S.name?esc(S.name):'المتقدم';
+  const rows=g.map(r=>{
+    const ok=r.pct>=PASS;
+    return `<tr><td class="w"><b>${esc(r.sec.name)}</b></td><td class="num">${r.c} / ${r.sec.n}</td><td style="min-width:150px"><div class="bar"><i class="${ok?'g':'r'}" style="width:${Math.round(r.pct*100)}%"></i><u></u></div></td><td class="num"><b>${Math.round(r.pct*100)}%</b></td><td>${ok?'<span class="tag ok">فوق 80%</span>':'<span class="tag bad">تحت 80%</span>'}</td><td class="num">${r.u?`<span class="tag warn">${r.u} بلا إجابة</span>`:''}</td></tr>`;
+  }).join('');
+  const weak=g.filter(r=>r.pct<PASS).sort((x,y)=>x.pct-y.pct).map(r=>r.sec.name);
+  const trs=b.traits.map(t=>`<div class="trait"><div><b>${esc(t.name)}</b><small>${esc(t.desc)}</small></div><div class="bar"><i class="${t.level[1]==='ok'?'g':t.level[1]==='bad'?'r':''}" style="width:${t.score}%;${t.level[1]==='warn'?'background:var(--warn)':''}"></i></div><div><span class="tag ${t.level[1]}">${t.level[0]}</span> <span class="num" style="font-size:.85rem">${t.score}%</span></div></div>`).join('');
+  const low=b.traits.filter(t=>t.score<65);
+  const adv=low.length?`<ul style="margin:6px 0 0;padding-inline-start:20px">${low.map(t=>`<li><b>${esc(t.name)}:</b> ${esc(ADVICE[t.id])}</li>`).join('')}</ul>`:'<p>لا توجد سمات تحتاج تنمية عاجلة.</p>';
+  app.innerHTML=`<main class="in">
+   <section class="verdict ${pass?'pass':'fail'}">
+     <p class="eyebrow">نتيجة ${name}</p>
+     <div class="big">${pass?'ناجح':'لم يجتز'} · ${(overall*100).toFixed(1)}%</div>
+     <p>أجبت إجابة صحيحة عن <b class="num">${correct}</b> من <b class="num">${TOTAL_GRADED}</b> سؤالًا في المحاور المُدرَّجة. نسبة الاجتياز المطلوبة 80% (${Math.ceil(TOTAL_GRADED*PASS)} سؤالًا على الأقل).</p>
+     ${weak.length?`<p>المحاور الأقل من 80%: <b>${weak.map(esc).join('، ')}</b>. ركّز عليها أولًا.</p>`:'<p>كل المحاور فوق 80%. أحسنت.</p>'}
+   </section>
+   <h2 class="sec-h">الدرجات حسب المحور</h2>
+   <section class="card"><div class="tw"><table><thead><tr><th>المحور</th><th>الصحيح</th><th>النسبة (الخط الذهبي = 80%)</th><th></th><th>الحالة</th><th></th></tr></thead><tbody>${rows}</tbody></table></div></section>
+   <h2 class="sec-h">تقرير الجدارات السلوكية</h2>
+   <section class="card" style="display:grid;gap:16px">
+     <div class="row"><span class="tag ${b.verdict[1]}" style="font-size:.95rem;padding:3px 14px">${esc(b.verdict[0])}</span><span class="num" style="font-size:.9rem">أجبت عن ${b.answered} / 160 · ثبات الإجابات ${b.consistency}%${b.incon?` · ${b.incon} أزواج متناقضة`:''}</span></div>
+     <p>${esc(b.verdict[2])}</p>
+     <div class="traits">${trs}</div>
+     <div><b>توصيات للتنمية</b>${adv}</div>
+     <p class="disc" style="margin:0">الثبات يقيس اتساق إجاباتك على عبارات متشابهة جاءت بصيغ مختلفة (مثل التعاون مع الزملاء ومساعدتهم). كلما تقاربت إجاباتك كان التقرير أدق.</p>
+   </section>
+   <h2 class="sec-h">مراجعة الإجابات</h2>
+   <div class="chips" id="revsec">${g.map(r=>`<button data-s="${r.sec.id}" class="${ui.rev===r.sec.id?'on':''}">${esc(r.sec.short)}</button>`).join('')}</div>
+   <div class="chips" id="revf" style="margin-top:10px">${[['all','الكل'],['wrong','الأخطاء'],['un','بلا إجابة']].map(([k,t])=>`<button data-f="${k}" class="${ui.filter===k?'on':''}">${t}</button>`).join('')}</div>
+   <div id="revlist" style="margin-top:14px"></div>
+   <div class="row" style="margin-top:22px"><button class="btn" id="again">اختبار جديد</button></div>
+  </main>`;
+  drawReview();
+  $('#revsec').onclick=e=>{const b=e.target.closest('button');if(!b)return;ui.rev=b.dataset.s;renderResults();$('#revsec').scrollIntoView({block:'center'})};
+  $('#revf').onclick=e=>{const b=e.target.closest('button');if(!b)return;ui.filter=b.dataset.f;renderResults();$('#revf').scrollIntoView({block:'center'})};
+  $('#again').onclick=()=>{const n=S.name;wipe();S=fresh();S.name=n;render();window.scrollTo(0,0)};
+}
+function drawReview(){
+  const sec=SECS.find(s=>s.id===ui.rev),qs=DATA[sec.id],a=S.ans[sec.id]||Array(sec.n).fill(-1);
+  const L=sec.lang==='en'?LET_EN:LET_AR,dir=sec.lang==='en'?'ltr':'rtl';
+  const items=qs.map((q,i)=>({q,i,u:a[i]})).filter(({q,u})=>ui.filter==='all'||(ui.filter==='wrong'&&u>=0&&u!==q.a)||(ui.filter==='un'&&u<0));
+  $('#revlist').innerHTML=items.length?items.map(({q,i,u})=>{
+    const st=u<0?'<span class="tag warn">بلا إجابة</span>':u===q.a?'<span class="tag ok">صحيحة</span>':'<span class="tag bad">خاطئة</span>';
+    const os=q.o.map((o,k)=>`<div class="ro${k===q.a?' right':k===u?' wrong':''}"><b>${L[k]}</b><span>${esc(o)}</span>${k===q.a?'<em>الإجابة الصحيحة</em>':k===u?'<em>إجابتك</em>':''}</div>`).join('');
+    return `<article class="card rq" dir="${dir}"><div class="row" dir="rtl"><span class="qnum">سؤال ${i+1}</span>${st}</div><h3>${esc(q.q)}</h3>${os}<p class="exp" dir="rtl">${esc(q.e)}</p></article>`;
+  }).join(''):'<div class="card">لا توجد أسئلة في هذا التصنيف.</div>';
+}
+
+/* ---------- التشغيل ---------- */
+function render(){
+  renderHeader();
+  if(S.phase==='intro')renderIntro();
+  else if(S.phase==='rest')renderRest();
+  else if(S.phase==='exam')renderExam();
+  else renderResults();
+}
+setInterval(()=>{
+  const now=Date.now();
+  if(S.phase==='exam'){
+    const left=Math.max(0,S.endAt-now),c=$('#clock');
+    if(c){c.textContent=fmt(left);c.classList.toggle('low',left<60000)}
+    if(left<=0)finishSection(true);
+  }else if(S.phase==='rest'){
+    const left=Math.ceil(Math.max(0,S.restEnd-now)/1000),r=$('#restc');
+    if(r&&r.textContent!==String(left))r.textContent=left;
+    if(left<=0)beginSection();
+  }
+},250);
+document.addEventListener('keydown',e=>{
+  if(S.phase!=='exam'||document.querySelector('.modal')||document.querySelector('.lockwall'))return;
+  if(e.target&&e.target.tagName==='INPUT'&&(e.target.type==='text'||e.target.type==='password'))return;
+  const sec=SECS[S.si];
+  if(/^[1-5]$/.test(e.key)&&+e.key<=sec.opts){setAnswer(+e.key-1);const r=document.querySelectorAll('.opt input')[+e.key-1];if(r)r.checked=true;}
+  else if(e.key==='ArrowLeft')goTo(S.qi+1);
+  else if(e.key==='ArrowRight')goTo(S.qi-1);
+});
+
+/* ---------- الفترة التجريبية وكلمة السر والاشتراك ---------- */
+const WA_NUMBER='201505191893';            // ضع رقم واتساب بالصيغة الدولية بدون + مثال: 201012345678
+const SUB_PRICE=100, TRIAL_SEC=120, PASS_CODE='108';
+const K_TRIAL='caoa-trial-v1', K_UNLOCK='caoa-unlock-v1';
+let trialUsed=0, unlocked=false;
+try{trialUsed=+localStorage.getItem(K_TRIAL)||0;unlocked=localStorage.getItem(K_UNLOCK)==='1'}catch(e){}
+function waLink(){
+  const msg='السلام عليكم، أرغب في الاشتراك في محاكي اختبار معلم مساعد. قيمة الاشتراك '+SUB_PRICE+' جنيهًا. برجاء إرسال طريقة الدفع وكلمة السر.'+(S&&S.name?'\nالاسم: '+S.name:'');
+  return 'https://wa.me/'+WA_NUMBER+'?text='+encodeURIComponent(msg);
+}
+function trialBlocked(){return !unlocked&&trialUsed>=TRIAL_SEC}
+function showLock(){
+  if(unlocked||document.querySelector('.lockwall'))return;
+  const w=document.createElement('div');w.className='lockwall';w.setAttribute('role','dialog');w.setAttribute('aria-modal','true');
+  w.innerHTML=`<div class="lockbox"><h2>انتهت الفترة التجريبية</h2>
+  <p>استخدمت الفترة التجريبية (${TRIAL_SEC} ثانية). للمتابعة اشترك بقيمة <b>${SUB_PRICE} جنيهًا</b> واحصل على كلمة السر عبر واتساب.</p>
+  <label for="lkpw">كلمة السر</label>
+  <input id="lkpw" type="password" inputmode="numeric" autocomplete="off" placeholder="أدخل كلمة السر">
+  <p id="lkerr" class="lkerr" role="alert"></p>
+  <div class="row"><button class="btn" id="lkok">فتح الاختبار</button>
+  <a class="btn ghost" id="lkwa" href="${waLink()}" target="_blank" rel="noopener">تواصل واتساب للاشتراك</a></div></div>`;
+  document.body.appendChild(w);
+  const pw=w.querySelector('#lkpw'),err=w.querySelector('#lkerr');
+  const tryUnlock=()=>{
+    if(pw.value.trim()===PASS_CODE){unlocked=true;try{localStorage.setItem(K_UNLOCK,'1')}catch(e){}w.remove();toast('تم فتح الاختبار بنجاح')}
+    else{err.textContent='كلمة السر غير صحيحة';pw.select()}
+  };
+  w.querySelector('#lkok').onclick=tryUnlock;
+  pw.onkeydown=e=>{if(e.key==='Enter')tryUnlock()};
+  setTimeout(()=>pw.focus(),50);
+}
+setInterval(()=>{
+  if(unlocked)return;
+  if(S.phase==='rest'||S.phase==='exam'){
+    if(trialUsed<TRIAL_SEC){trialUsed++;try{localStorage.setItem(K_TRIAL,String(trialUsed))}catch(e){}}
+    if(trialUsed>=TRIAL_SEC)showLock();
+  }
+},1000);
+
+render();
+</script>
+
+</body>
+</html>
